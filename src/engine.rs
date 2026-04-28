@@ -2,14 +2,16 @@ use crate::commands::{CliCommand, CliCommands, Keyword};
 use crate::errors::AnovaError;
 use crate::schema::device::{AnovaCommand, AnovaDevice, AnovaDevices};
 use crate::tmp_send::{send_set, send_start, send_stop};
-use crate::types::Anova;
+use crate::types::{Anova, Reader};
 
 use futures_util::StreamExt;
 use log::{info, warn};
 use serde_json;
 use std::io::Write;
 use std::time::Duration;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::sync::mpsc::UnboundedSender;
+use tokio::task::JoinHandle;
 use tokio::{
     self,
     sync::mpsc::{self, UnboundedReceiver},
@@ -115,15 +117,9 @@ async fn get_action_from_user<'a>(cli_cmds: &'a CliCommands) -> &'a CliCommand {
 
     action
 }
-pub async fn run(anova: Anova) -> Result<(), AnovaError> {
-    info!("establishing connection...");
-    let (mut writer, mut reader) = anova.get_stream().await?;
 
-    let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
-
-    // background task for acknowledging messages.
-    let txc = tx.clone();
-    tokio::spawn(async move {
+async fn start_background_task(tx: UnboundedSender<Message>, mut reader: Reader) -> JoinHandle<()> {
+    let handle = tokio::spawn(async move {
         while let Some(msg) = reader.next().await {
             let msg = match msg {
                 Ok(msg) => msg,
@@ -133,7 +129,7 @@ pub async fn run(anova: Anova) -> Result<(), AnovaError> {
                 }
             };
 
-            match txc.send(msg) {
+            match tx.send(msg) {
                 Ok(_) => {}
                 Err(e) => {
                     warn!("{:?}", e)
@@ -142,13 +138,26 @@ pub async fn run(anova: Anova) -> Result<(), AnovaError> {
         }
     });
 
-    info!("checking devices...");
+    handle
+}
+
+pub async fn run(anova: Anova) -> Result<(), AnovaError> {
+    info!("establishing connection...");
+    let (mut writer, reader) = anova.get_stream().await?;
+    let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
+
+    info!("Starting background task...");
+    let bg_handle = start_background_task(tx.clone(), reader).await;
+
+    info!("checking available devices...");
     let anova_devices = get_devices(Duration::from_secs(30), &mut rx).await?;
 
     info!("waiting for user input...");
     let device = get_device_from_user(&anova_devices).await;
 
+    // main loop for checking user input.
     let cli_cmds = CliCommands::default();
+
     loop {
         info!("waiting for user input...");
         let action = get_action_from_user(&cli_cmds).await;
@@ -168,8 +177,11 @@ pub async fn run(anova: Anova) -> Result<(), AnovaError> {
             }
         }
 
+        // artificial delay.
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
+
+    bg_handle.abort();
 
     Ok(())
 }

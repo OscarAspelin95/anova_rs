@@ -3,7 +3,7 @@ use serde_json::Value;
 use tabled::{Table, Tabled, settings::Style};
 
 /// Docstring
-/// For now, we only deal with APC.
+/// currently unused.
 #[derive(Debug)]
 pub enum DeviceType {
     APC, // Anova Precision Cooker
@@ -44,12 +44,6 @@ impl AnovaDevices {
 
 /// Docstring
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AnovaApcWifiListResponse {
-    pub payload: Vec<AnovaDevice>,
-}
-
-/// Docstring
-#[derive(Debug, Serialize, Deserialize)]
 pub struct AnovaCommand {
     pub command: AnovaCommandType,
     pub payload: Value,
@@ -66,8 +60,10 @@ impl AnovaCommand {
 pub enum AnovaCommandType {
     #[serde(rename = "EVENT_APC_WIFI_LIST")]
     EventApcWifiList,
+    // currently unused.
     #[serde(rename = "EVENT_APO_WIFI_LIST")]
     EventApoWifiList,
+    // currently unused.
     #[serde(rename = "EVENT_APC_WIFI_VERSION")]
     EventApcWifiVersion,
 }

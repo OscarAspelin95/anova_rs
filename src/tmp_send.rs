@@ -1,4 +1,3 @@
-//! For testing purposes only.
 use crate::errors::AnovaError;
 use serde::Serialize;
 use serde_json;
@@ -43,6 +42,7 @@ async fn send<T: Serialize>(content: T, writer: &mut Writer) -> Result<(), Anova
     Ok(())
 }
 
+/// parse user input from stdin to a specific type.
 async fn get_value_from_user<T: FromStr>(input_str: &str) -> T {
     let mut s = BufReader::new(tokio::io::stdin());
     let mut buf = String::new();
@@ -77,7 +77,7 @@ pub async fn send_start(device: &AnovaDevice, writer: &mut Writer) -> Result<(),
     let temperature: f64 = get_value_from_user("temperature (celsius)").await;
 
     let cmd = ApcStart {
-        command: ApcCommands::CMD_APC_START,
+        command: ApcCommands::CmdApcStart,
         request_id: uuid::Uuid::new_v4(),
         payload: ApcStartPayload {
             cooker_id: device.cooker_id.clone(),
@@ -93,13 +93,15 @@ pub async fn send_start(device: &AnovaDevice, writer: &mut Writer) -> Result<(),
 }
 
 pub async fn send_set(device: &AnovaDevice, writer: &mut Writer) -> Result<(), AnovaError> {
+    let unit: Unit = get_value_from_user("temperature unit (C/F)").await;
+
     let cmd = ApcSet {
-        command: ApcCommands::CMD_APC_SET_TEMPERATURE_UNIT,
+        command: ApcCommands::CmdApcSetTemperatureUnit,
         request_id: uuid::Uuid::new_v4(),
         payload: ApcSetPayload {
             cooker_id: device.cooker_id.clone(),
             r#type: device.r#type.clone(),
-            unit: Unit::C,
+            unit: unit,
         },
     };
 
@@ -109,7 +111,7 @@ pub async fn send_set(device: &AnovaDevice, writer: &mut Writer) -> Result<(), A
 
 pub async fn send_stop(device: &AnovaDevice, writer: &mut Writer) -> Result<(), AnovaError> {
     let cmd = ApcStop {
-        command: ApcCommands::CMD_APC_STOP,
+        command: ApcCommands::CmdApcStop,
         request_id: uuid::Uuid::new_v4(),
         payload: ApcStopPayload {
             cooker_id: device.cooker_id.clone(),

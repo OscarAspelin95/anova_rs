@@ -8,7 +8,7 @@ use url::Url;
 use validator::{Validate, ValidationError};
 
 type WsStream = WebSocketStream<MaybeTlsStream<TcpStream>>;
-type Reader = SplitStream<WsStream>;
+pub type Reader = SplitStream<WsStream>;
 pub type Writer = SplitSink<WsStream, Message>;
 
 fn validate_token(token: &str) -> Result<(), ValidationError> {

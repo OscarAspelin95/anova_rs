@@ -11,7 +11,6 @@ use simple_logger::SimpleLogger;
 
 use crate::types::Anova;
 
-/// Move later on.
 fn init() -> Result<(), AnovaError> {
     if dotenv::dotenv().is_err() {
         return Err(AnovaError::EnvError(".env file missing".into()));

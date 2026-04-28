@@ -2,7 +2,6 @@ use super::{ApcCommands, Unit};
 use serde::Serialize;
 use uuid::Uuid;
 
-/// We can probably have some builder pattern here.
 #[derive(Debug, Serialize)]
 pub struct ApcStartPayload {
     #[serde(rename = "cookerId")]

@@ -8,12 +8,15 @@ use tabled::{Table, Tabled, settings::Style};
 
 #[derive(Debug, Serialize)]
 pub enum ApcCommands {
-    CMD_APC_START,
-    CMD_APC_STOP,
-    CMD_APC_SET_TEMPERATURE_UNIT,
+    #[serde(rename = "CMD_APC_START")]
+    CmdApcStart,
+    #[serde(rename = "CMD_APC_STOP")]
+    CmdApcStop,
+    #[serde(rename = "CMD_APC_SET_TEMPERATURE_UNIT")]
+    CmdApcSetTemperatureUnit,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, EnumString)]
 pub enum Unit {
     C,
     F,
@@ -46,16 +49,16 @@ impl CliCommands {
     pub fn default() -> Self {
         let cmd_start = CliCommand {
             keyword: Keyword::Start,
-            description: "Start ANOVA".into(),
+            description: "Start ANOVA cooking session".into(),
         };
         let cmd_set = CliCommand {
             keyword: Keyword::Set,
-            description: "Set ANOVA temperature".into(),
+            description: "Set ANOVA temperature unit (C/F)".into(),
         };
 
         let cmd_stop = CliCommand {
             keyword: Keyword::Stop,
-            description: "Stop ANOVA".into(),
+            description: "Stop ANOVA cooking session".into(),
         };
 
         let cmd_quit = CliCommand {
