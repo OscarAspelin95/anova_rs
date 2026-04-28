@@ -1,3 +1,4 @@
+use crate::commands::{CliCommand, CliCommands, Keyword};
 use crate::errors::AnovaError;
 use crate::schema::device::{AnovaCommand, AnovaDevice, AnovaDevices};
 use crate::tmp_send::{send_set, send_start, send_stop};
@@ -6,8 +7,9 @@ use crate::types::Anova;
 use futures_util::StreamExt;
 use log::{info, warn};
 use serde_json;
+use std::io::Write;
 use std::time::Duration;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::{
     self,
     sync::mpsc::{self, UnboundedReceiver},
@@ -51,6 +53,8 @@ async fn get_device_from_user<'a>(anova_devices: &'a AnovaDevices) -> &'a AnovaD
     let device = loop {
         println!("\nPlease select device ID:");
         anova_devices.show();
+        print!("device ID: ");
+        std::io::stdout().flush().unwrap();
 
         buf.clear();
         match s.read_line(&mut buf).await {
@@ -77,6 +81,40 @@ async fn get_device_from_user<'a>(anova_devices: &'a AnovaDevices) -> &'a AnovaD
     device
 }
 
+async fn get_action_from_user<'a>(cli_cmds: &'a CliCommands) -> &'a CliCommand {
+    let mut s = BufReader::new(tokio::io::stdin());
+    let mut buf = String::new();
+
+    let action = loop {
+        println!("\nPlease select action (keyword):");
+        cli_cmds.show();
+        print!("action: ");
+        std::io::stdout().flush().unwrap();
+
+        buf.clear();
+        match s.read_line(&mut buf).await {
+            Ok(size) if size > 0 => {}
+            unexpected => {
+                warn!("{:?}", unexpected);
+                continue;
+            }
+        }
+
+        match cli_cmds
+            .commands
+            .iter()
+            .find(|c| c.keyword.to_string().to_lowercase() == buf.trim().to_lowercase())
+        {
+            Some(action) => break action.to_owned(),
+            None => {
+                println!("invalid keyword `{}`", buf);
+                continue;
+            }
+        }
+    };
+
+    action
+}
 pub async fn run(anova: Anova) -> Result<(), AnovaError> {
     info!("establishing connection...");
     let (mut writer, mut reader) = anova.get_stream().await?;
@@ -110,17 +148,28 @@ pub async fn run(anova: Anova) -> Result<(), AnovaError> {
     info!("waiting for user input...");
     let device = get_device_from_user(&anova_devices).await;
 
-    // ------- test code.
-    // test send start cook.
-    let _ = send_start(device, &mut writer).await?;
-    tokio::time::sleep(Duration::from_secs(3)).await;
+    let cli_cmds = CliCommands::default();
+    loop {
+        info!("waiting for user input...");
+        let action = get_action_from_user(&cli_cmds).await;
 
-    // test send set temp
-    let _ = send_set(device, &mut writer).await?;
-    tokio::time::sleep(Duration::from_secs(3)).await;
+        match action.keyword {
+            Keyword::Start => {
+                let _ = send_start(device, &mut writer).await?;
+            }
+            Keyword::Set => {
+                let _ = send_set(device, &mut writer).await?;
+            }
+            Keyword::Stop => {
+                let _ = send_stop(device, &mut writer).await?;
+            }
+            Keyword::Quit => {
+                break;
+            }
+        }
 
-    // test send stop cook.
-    let _ = send_stop(device, &mut writer).await?;
+        tokio::time::sleep(Duration::from_secs(1)).await;
+    }
 
     Ok(())
 }

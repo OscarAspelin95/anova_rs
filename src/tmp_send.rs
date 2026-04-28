@@ -2,6 +2,7 @@
 use crate::errors::AnovaError;
 use serde::Serialize;
 use serde_json;
+use std::{io::Write, str::FromStr};
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::{
@@ -16,10 +17,13 @@ use crate::{
 
 use crate::types::Writer;
 use futures_util::SinkExt;
-use log::{error, info};
+use log::{error, info, warn};
 use std::time::Duration;
 
-use tokio;
+use tokio::{
+    self,
+    io::{AsyncBufReadExt, BufReader},
+};
 
 async fn send<T: Serialize>(content: T, writer: &mut Writer) -> Result<(), AnovaError> {
     let bytes = serde_json::to_vec(&content)?;
@@ -39,16 +43,48 @@ async fn send<T: Serialize>(content: T, writer: &mut Writer) -> Result<(), Anova
     Ok(())
 }
 
+async fn get_value_from_user<T: FromStr>(input_str: &str) -> T {
+    let mut s = BufReader::new(tokio::io::stdin());
+    let mut buf = String::new();
+
+    let value = loop {
+        print!("\nPlease input {}: ", input_str);
+        std::io::stdout().flush().unwrap();
+
+        buf.clear();
+        match s.read_line(&mut buf).await {
+            Ok(size) if size > 0 => {}
+            unexpected => {
+                warn!("{:?}", unexpected);
+                continue;
+            }
+        }
+
+        match buf.trim().parse::<T>() {
+            Ok(timer) => break timer,
+            Err(_) => {
+                println!("invalid value `{}`", buf);
+                continue;
+            }
+        }
+    };
+
+    value
+}
+
 pub async fn send_start(device: &AnovaDevice, writer: &mut Writer) -> Result<(), AnovaError> {
+    let timer: u64 = get_value_from_user("time (seconds)").await;
+    let temperature: f64 = get_value_from_user("temperature (celsius)").await;
+
     let cmd = ApcStart {
         command: ApcCommands::CMD_APC_START,
         request_id: uuid::Uuid::new_v4(),
         payload: ApcStartPayload {
             cooker_id: device.cooker_id.clone(),
             r#type: device.r#type.clone(),
-            target_temperature: 35.0,
+            target_temperature: temperature,
             unit: Unit::C,
-            timer: 100,
+            timer: timer,
         },
     };
 
