@@ -7,6 +7,7 @@ use futures_util::StreamExt;
 use log::{info, warn};
 use serde_json;
 use std::time::Duration;
+use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::{
     self,
     sync::mpsc::{self, UnboundedReceiver},
@@ -26,8 +27,6 @@ async fn get_devices(
 
             // only consider APC for now.
             if anova_command.is_apc_wifi_list_response() {
-                println!("{:?}", &anova_command.payload);
-
                 let response = serde_json::from_value::<Vec<AnovaDevice>>(anova_command.payload)?;
 
                 return Ok(AnovaDevices { devices: response });
@@ -43,6 +42,39 @@ async fn get_devices(
         Ok(inner_result) => inner_result,
         Err(e) => Err(AnovaError::TimeoutError(e.to_string())),
     }
+}
+
+async fn get_device_from_user<'a>(anova_devices: &'a AnovaDevices) -> &'a AnovaDevice {
+    let mut s = BufReader::new(tokio::io::stdin());
+    let mut buf = String::new();
+
+    let device = loop {
+        println!("\nPlease select device ID:");
+        anova_devices.show();
+
+        buf.clear();
+        match s.read_line(&mut buf).await {
+            Ok(size) if size > 0 => {}
+            unexpected => {
+                warn!("{:?}", unexpected);
+                continue;
+            }
+        }
+
+        match anova_devices
+            .devices
+            .iter()
+            .find(|d| d.cooker_id == buf.trim())
+        {
+            Some(device) => break device,
+            None => {
+                println!("invalid device ID");
+                continue;
+            }
+        }
+    };
+
+    device
 }
 
 pub async fn run(anova: Anova) -> Result<(), AnovaError> {
@@ -75,12 +107,10 @@ pub async fn run(anova: Anova) -> Result<(), AnovaError> {
     info!("checking devices...");
     let anova_devices = get_devices(Duration::from_secs(30), &mut rx).await?;
 
-    anova_devices.show();
+    info!("waiting for user input...");
+    let device = get_device_from_user(&anova_devices).await;
 
-    // Later on -> input from user.
-    // For now, the first device available.
-    let device = anova_devices.devices.first().unwrap();
-
+    // ------- test code.
     // test send start cook.
     let _ = send_start(device, &mut writer).await?;
     tokio::time::sleep(Duration::from_secs(3)).await;
