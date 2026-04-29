@@ -1,5 +1,5 @@
-use crate::consts::TOKEN_PREFIX;
-use crate::errors::AnovaError;
+use super::consts::TOKEN_PREFIX;
+use super::errors::AnovaError;
 use futures_util::StreamExt;
 use futures_util::stream::{SplitSink, SplitStream};
 use tokio::net::TcpStream;

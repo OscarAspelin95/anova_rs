@@ -1,38 +1,18 @@
-mod commands;
-mod consts;
-mod engine;
-mod errors;
-mod schema;
-mod tmp_send;
-mod types;
+use crate::app::App;
 
-use errors::AnovaError;
-use simple_logger::SimpleLogger;
-
-use crate::types::Anova;
-
-fn init() -> Result<(), AnovaError> {
-    if dotenv::dotenv().is_err() {
-        return Err(AnovaError::EnvError(".env file missing".into()));
-    };
-
-    if SimpleLogger::new()
-        .with_level(log::LevelFilter::Info)
-        .init()
-        .is_err()
-    {
-        return Err(AnovaError::LogError("failed to set up logging".into()));
-    }
-
-    Ok(())
-}
+pub mod anova_engine;
+pub mod app;
+pub mod event;
+pub mod types;
+pub mod ui;
 
 #[tokio::main]
-async fn main() -> Result<(), AnovaError> {
-    init()?;
+async fn main() -> color_eyre::Result<()> {
+    color_eyre::install()?;
 
-    let anova = Anova::from_env()?;
-    let _ = engine::run(anova).await?;
+    let terminal = ratatui::init();
+    let result = App::new().run(terminal).await;
+    ratatui::restore();
 
-    Ok(())
+    result
 }
