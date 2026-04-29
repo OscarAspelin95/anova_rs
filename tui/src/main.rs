@@ -1,5 +1,6 @@
 use crate::app::App;
 
+pub mod anova_engine;
 pub mod app;
 pub mod event;
 pub mod types;

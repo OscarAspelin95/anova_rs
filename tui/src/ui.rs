@@ -67,14 +67,21 @@ impl App {
             })
             .collect();
 
-        List::new(items)
-            .block(
-                Block::bordered()
-                    .border_type(BorderType::Rounded)
-                    .title("Devices"),
-            )
-            .highlight_symbol("> ")
-            .render(list_area, buf);
+        if items.len() > 0 {
+            List::new(items)
+                .block(
+                    Block::bordered()
+                        .border_type(BorderType::Rounded)
+                        .title("Devices"),
+                )
+                .highlight_symbol("> ")
+                .render(list_area, buf);
+        } else {
+            Paragraph::new("No devices found (yet)")
+                .alignment(Alignment::Center)
+                .red()
+                .render(list_area, buf);
+        }
 
         // show help text
         let divider = " | ".dark_gray();
@@ -100,10 +107,10 @@ impl App {
         // render control
         let text = match &self.anova_devices.current_device() {
             Some(device) => format!("{} | {} | {}", device.cooker_id, device.name, device.r#type),
-            None => "No device".into(),
+            None => "No device selected".into(),
         };
 
-        // conditional color rendering based on if device or not.
+        // add conditional color rendering based on if device or not.
         Paragraph::new(text)
             .block(Block::bordered().border_type(BorderType::Rounded))
             .fg(Color::DarkGray)

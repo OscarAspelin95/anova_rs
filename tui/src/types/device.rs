@@ -12,20 +12,7 @@ pub struct AnovaDevice {
 
 impl AnovaDevice {
     pub fn mock_devices() -> Vec<AnovaDevice> {
-        vec![
-            AnovaDevice {
-                cooker_id: "1".into(),
-                name: "1".into(),
-                r#type: "1".into(),
-                paired_at: "1".into(),
-            },
-            AnovaDevice {
-                cooker_id: "1".into(),
-                name: "1".into(),
-                r#type: "1".into(),
-                paired_at: "1".into(),
-            },
-        ]
+        vec![]
     }
 }
 
@@ -40,7 +27,7 @@ impl Devices {
     pub fn mock() -> Self {
         Self {
             current_index: None,
-            next_index: Some(0),
+            next_index: None,
             devices: AnovaDevice::mock_devices(),
         }
     }
@@ -82,5 +69,14 @@ impl Devices {
             None => None,
             Some(current_index) => self.devices.get(current_index),
         }
+    }
+
+    pub fn update_devices(&mut self, devices: Vec<AnovaDevice>) {
+        if devices.is_empty() {
+            return;
+        }
+
+        self.devices = devices;
+        self.next_index = Some(0);
     }
 }

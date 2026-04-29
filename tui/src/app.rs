@@ -1,4 +1,5 @@
 use crate::{
+    anova_engine,
     event::{AppEvent, Event, EventHandler},
     types::{Devices, PageTab, PageTabs},
 };
@@ -31,9 +32,6 @@ impl Default for App {
 }
 
 /// We need to:
-/// 1. auto identify anova token
-/// 2. do a background device search
-/// 3. update the app state with anova devices
 /// 4. implement the wss api request for start/set/end.
 /// 5. Make the control UI nice, should be able to choose temp, etc.
 impl App {
@@ -42,6 +40,10 @@ impl App {
     }
 
     pub async fn run(mut self, mut terminal: DefaultTerminal) -> color_eyre::Result<()> {
+        // send a clone of sender to device loop
+        anova_engine::engine::start(self.events.sender.clone()).await?;
+        //
+
         while self.running {
             terminal.draw(|frame| frame.render_widget(&self, frame.area()))?;
 
@@ -63,7 +65,7 @@ impl App {
                     AppEvent::PreviousDevice => self.anova_devices.previous_device(),
                     AppEvent::UpdateDevice => self.anova_devices.update_device(),
                     AppEvent::SetAppDevices(identified_devices) => {
-                        self.anova_devices.devices = identified_devices
+                        self.anova_devices.update_devices(identified_devices);
                     }
                 },
             }
