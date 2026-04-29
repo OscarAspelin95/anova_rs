@@ -14,21 +14,19 @@ pub struct AnovaCommand {
     pub payload: Value,
 }
 
-impl AnovaCommand {
-    pub fn is_apc_wifi_list_response(&self) -> bool {
-        return self.command == AnovaCommandType::EventApcWifiList;
-    }
-}
-
 /// Docstring
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum AnovaCommandType {
+    // visible devices
     #[serde(rename = "EVENT_APC_WIFI_LIST")]
     EventApcWifiList,
-    // currently unused.
-    #[serde(rename = "EVENT_APO_WIFI_LIST")]
-    EventApoWifiList,
-    // currently unused.
+    // available devices?
     #[serde(rename = "EVENT_APC_WIFI_VERSION")]
     EventApcWifiVersion,
+    // ?
+    #[serde(rename = "EVENT_USER_STATE")]
+    EventUserState,
+    //
+    #[serde(rename = "EVENT_APC_STATE")]
+    EventApcState,
 }

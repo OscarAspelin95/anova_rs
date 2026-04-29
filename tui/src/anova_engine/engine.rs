@@ -1,103 +1,102 @@
 use futures_util::StreamExt;
-use log::{info, warn};
+use log::{debug, info};
 use serde_json;
-use std::time::Duration;
+
+use tokio;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::task::JoinHandle;
-use tokio::{
-    self,
-    sync::mpsc::{self, UnboundedReceiver},
-};
-use tokio_tungstenite::tungstenite::Message;
 
+use crate::anova_engine::schema::device::AnovaCommandType;
 use crate::event::{AppEvent, Event};
+use crate::types::device::{ApcStatePayload, ApcStatePayloadSimple, Cooker, UserStatePayload};
 
 use super::errors::AnovaError;
-use super::schema::device::{AnovaCommand, AnovaDevices};
+use super::schema::device::AnovaCommand;
 use super::types::Anova;
-use super::types::{Reader, Writer};
 use crate::types::AnovaDevice;
-
-async fn get_devices(
-    duration: std::time::Duration,
-    rx: &mut UnboundedReceiver<Message>,
-) -> Result<AnovaDevices, AnovaError> {
-    let timeout_result = tokio::time::timeout(duration, async {
-        while let Some(msg) = rx.recv().await {
-            let msg_bytes = msg.into_data();
-
-            // must be valid anova cmd.
-            let anova_command = serde_json::from_slice::<AnovaCommand>(&msg_bytes)?;
-
-            // only consider APC for now.
-            if anova_command.is_apc_wifi_list_response() {
-                let response = serde_json::from_value::<Vec<AnovaDevice>>(anova_command.payload)?;
-
-                return Ok(AnovaDevices { devices: response });
-            }
-        }
-
-        Err(AnovaError::TimeoutError("failed to find devices".into()))
-    })
-    .await;
-
-    // Handle the Timeout (Elapsed error) and the internal Result
-    match timeout_result {
-        Ok(inner_result) => inner_result,
-        Err(e) => Err(AnovaError::TimeoutError(e.to_string())),
-    }
-}
-
-async fn start_background_task(tx: UnboundedSender<Message>, mut reader: Reader) -> JoinHandle<()> {
-    let handle = tokio::spawn(async move {
-        while let Some(msg) = reader.next().await {
-            let msg = match msg {
-                Ok(msg) => msg,
-                Err(e) => {
-                    warn!("{:?}", e);
-                    continue;
-                }
-            };
-
-            match tx.send(msg) {
-                Ok(_) => {}
-                Err(e) => {
-                    warn!("{:?}", e)
-                }
-            }
-        }
-    });
-
-    handle
-}
 
 pub async fn start(sender: UnboundedSender<Event>) -> Result<JoinHandle<()>, AnovaError> {
     //
     let handle = tokio::spawn(async move {
+        info!("loading environment...");
         let _ = dotenv::dotenv().ok();
 
+        info!("creating anova instance...");
         let anova = Anova::from_env().expect("no anova token in .env file.");
 
-        info!("establishing connection...");
-        let (mut writer, reader) = anova
+        info!("establishing websocket connection...");
+        let (writer, mut reader) = anova
             .get_stream()
             .await
             .expect("failed to create websocker stream.");
-        let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
 
-        info!("Starting background task...");
-        let bg_handle = start_background_task(tx.clone(), reader).await;
+        // we want to send the writer back to app for sending requests.
+        // <implement this here>
 
-        info!("checking available devices...");
-        let anova_devices = get_devices(Duration::from_secs(30), &mut rx)
-            .await
-            .expect("");
+        // continuously monitor all incoming messages from the cooker.
+        // we need a lot of proper error handling/catching to not break the loop.
+        loop {
+            // try get message.
+            let msg = match reader.next().await {
+                Some(Ok(msg)) => msg,
+                _ => continue,
+            };
 
-        sender
-            .send(Event::App(AppEvent::SetAppDevices(anova_devices.devices)))
-            .expect("");
+            // try parsing as valid api response
+            let anova_command = match serde_json::from_slice::<AnovaCommand>(&msg.into_data()) {
+                Ok(anova_command) => anova_command,
+                _ => continue,
+            };
 
-        bg_handle.abort();
+            // parse and dispatch msg type.
+            match anova_command.command {
+                // visible devices
+                AnovaCommandType::EventApcWifiList => {
+                    let anova_devices_list =
+                        match serde_json::from_value::<Vec<AnovaDevice>>(anova_command.payload) {
+                            Ok(v) => v,
+                            Err(_) => continue,
+                        };
+
+                    let _ = sender.send(Event::App(AppEvent::SetAppDevices(anova_devices_list)));
+                }
+                // available devices
+                AnovaCommandType::EventApcWifiVersion => {
+                    let anova_devices_version =
+                        match serde_json::from_value::<Vec<Cooker>>(anova_command.payload) {
+                            Ok(v) => v,
+                            Err(_) => continue,
+                        };
+
+                    debug!("{:?}", anova_devices_version);
+                }
+                // information about user.
+                AnovaCommandType::EventUserState => {
+                    let user_state =
+                        match serde_json::from_value::<UserStatePayload>(anova_command.payload) {
+                            Ok(v) => v,
+                            Err(_) => continue,
+                        };
+
+                    debug!("{:?}", user_state);
+                }
+
+                // detailed information about device
+                AnovaCommandType::EventApcState => {
+                    let apc_state_payload =
+                        match serde_json::from_value::<ApcStatePayload>(anova_command.payload) {
+                            Ok(v) => v,
+                            Err(_) => continue,
+                        };
+
+                    let apc_state_payload_simple: ApcStatePayloadSimple = apc_state_payload.into();
+
+                    // send
+                    let _ =
+                        sender.send(Event::App(AppEvent::SetApcState(apc_state_payload_simple)));
+                }
+            };
+        }
     });
 
     Ok(handle)

@@ -1,6 +1,6 @@
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::style::Style;
-use ratatui::text::{Line, Text};
+use ratatui::text::{Line, Span, Text};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -62,8 +62,11 @@ impl App {
                     false => "",
                 };
 
-                ListItem::new(format!("{}{} | {} | {}", t, d.cooker_id, d.name, d.r#type))
-                    .style(style)
+                ListItem::new(format!(
+                    "{}{} | {} | {} | {}",
+                    t, d.cooker_id, d.name, d.r#type, d.paired_at
+                ))
+                .style(style)
             })
             .collect();
 
@@ -106,8 +109,32 @@ impl App {
 
         // render control
         let text = match &self.anova_devices.current_device() {
-            Some(device) => format!("{} | {} | {}", device.cooker_id, device.name, device.r#type),
-            None => "No device selected".into(),
+            Some(device) => {
+                let header = Line::from(format!(
+                    "{} | {} | {}",
+                    device.cooker_id, device.name, device.r#type
+                ));
+
+                let mut lines = vec![header];
+
+                if let Some(apc_state) = &device.apc_state {
+                    lines.push(Line::from(vec![
+                        Span::raw("water temp: "),
+                        Span::styled(
+                            format!("{:.1}", apc_state.temperature.water_temperature),
+                            Style::default().fg(Color::Blue),
+                        ),
+                        Span::raw(" | heater temp: "),
+                        Span::styled(
+                            format!("{:.1}", apc_state.temperature.heater_temperature),
+                            Style::default().fg(Color::Blue),
+                        ),
+                    ]));
+                }
+
+                Text::from(lines)
+            }
+            None => Text::from("No device selected"),
         };
 
         // add conditional color rendering based on if device or not.

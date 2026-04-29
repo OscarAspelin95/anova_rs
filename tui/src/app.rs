@@ -32,8 +32,8 @@ impl Default for App {
 }
 
 /// We need to:
-/// 4. implement the wss api request for start/set/end.
-/// 5. Make the control UI nice, should be able to choose temp, etc.
+/// * Implement the wss api request for start/set/end.
+/// * Make the control UI nice, should be able to choose temp, etc.
 impl App {
     pub fn new() -> Self {
         Self::default()
@@ -64,9 +64,15 @@ impl App {
                     AppEvent::NextDevice => self.anova_devices.next_device(),
                     AppEvent::PreviousDevice => self.anova_devices.previous_device(),
                     AppEvent::UpdateDevice => self.anova_devices.update_device(),
+                    // set visible devices.
                     AppEvent::SetAppDevices(identified_devices) => {
                         self.anova_devices.update_devices(identified_devices);
                     }
+                    // update apc state.
+                    AppEvent::SetApcState(apc_state_simple) => {
+                        self.anova_devices.set_apc_state(apc_state_simple);
+                    }
+                    _ => {}
                 },
             }
         }
