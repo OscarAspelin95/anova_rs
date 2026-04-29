@@ -16,6 +16,10 @@ impl AnovaDevice {
     pub fn mock_devices() -> Vec<AnovaDevice> {
         vec![]
     }
+
+    pub fn is_connected(&self) -> bool {
+        self.apc_state.is_some()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

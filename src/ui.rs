@@ -10,7 +10,7 @@ use ratatui::{
 
 use crate::app::App;
 
-use crate::types::{Devices, PageTab, PageTabs};
+use crate::types::PageTab;
 use ratatui::widgets::{List, ListItem, Tabs};
 
 impl Widget for &App {
@@ -110,10 +110,20 @@ impl App {
         // render control
         let text = match &self.anova_devices.current_device() {
             Some(device) => {
-                let header = Line::from(format!(
-                    "{} | {} | {}",
-                    device.cooker_id, device.name, device.r#type
-                ));
+                let divider = " | ";
+
+                let connection_span = match device.is_connected() {
+                    true => Span::styled("Connected", Style::default().fg(Color::Green)),
+                    false => Span::styled("Not Connected", Style::default().fg(Color::Red)),
+                };
+
+                let header = Line::from(vec![
+                    Span::raw(format!("id: {}", device.cooker_id)),
+                    Span::styled(divider, Style::default().fg(Color::DarkGray)),
+                    Span::raw(format!("{}", device.name)),
+                    Span::styled(divider, Style::default().fg(Color::DarkGray)),
+                    connection_span,
+                ]);
 
                 let mut lines = vec![header];
 

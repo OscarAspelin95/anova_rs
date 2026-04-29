@@ -1,7 +1,7 @@
 [package]
-name = "anova-tui"
+name = "anova-rs"
 version = "0.1.0"
-description = "TUI for controlling ANOVA APC devices"
+description = "TUI for minotoring and controlling ANOVA APC devices"
 authors = ["OscarAspelin <oscar.asp@hotmail.com>"]
 license = "MIT"
 edition = "2024"
