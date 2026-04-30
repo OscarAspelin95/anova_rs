@@ -2,8 +2,8 @@ use crate::{
     anova_engine,
     event::{AppEvent, Event, EventHandler},
     types::{
-        ApiRequest, Devices, PageTab, PageTabs,
-        api_request::{self, ApcStartPayload},
+        ApiRequest, Control, ControlType, ControlTypeIter, Devices, PageTab, PageTabs,
+        api_request::{self, ApcSetPayload, ApcStartPayload, ApcStopPayload},
     },
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -18,6 +18,8 @@ pub struct App {
     pub api_sender: Option<UnboundedSender<ApiRequest>>,
     // device
     pub anova_devices: Devices,
+    // control
+    pub control: Control,
     // tabs
     pub page_tabs: PageTabs,
 }
@@ -30,7 +32,9 @@ impl Default for App {
             events: EventHandler::new(),
             api_sender: None,
             // device
-            anova_devices: Devices::mock(),
+            anova_devices: Devices::new(),
+            // control
+            control: Control::new(),
             // tabs
             page_tabs: PageTabs::new(),
         }
@@ -68,20 +72,23 @@ impl App {
                     _ => {}
                 },
                 Event::App(app_event) => match app_event {
-                    // only allow counter to change if in target tab.
+                    // global
                     AppEvent::Quit => self.quit(),
                     AppEvent::ChangeTab => self.page_tabs.next(),
+                    // device
                     AppEvent::NextDevice => self.anova_devices.next_device(),
                     AppEvent::PreviousDevice => self.anova_devices.previous_device(),
                     AppEvent::UpdateDevice => self.anova_devices.update_device(),
-                    // set visible devices.
                     AppEvent::SetAppDevices(identified_devices) => {
                         self.anova_devices.update_devices(identified_devices);
                     }
-                    // update apc state.
                     AppEvent::SetApcState(apc_state_simple) => {
                         self.anova_devices.set_apc_state(apc_state_simple);
                     }
+                    // control
+                    AppEvent::NextControl => self.control.next_control(),
+                    AppEvent::PreviousControl => self.control.previous_control(),
+                    AppEvent::UpdateControl => self.control.update_control(),
                     AppEvent::SendApiRequest => self.send_api_request(),
                     _ => {}
                 },
@@ -93,15 +100,31 @@ impl App {
     /// Catch or log potential errors later on.
     /// TEMP - test that it works.
     pub fn send_api_request(&mut self) {
-        match (&self.api_sender, self.anova_devices.current_device()) {
-            (Some(api_sender), Some(device)) => {
-                let api_request = ApiRequest::Start(ApcStartPayload {
-                    cooker_id: device.cooker_id.clone(),
-                    r#type: device.r#type.clone(),
-                    target_temperature: 35.0,
-                    unit: api_request::TemperatureUnit::C,
-                    timer: 100,
-                });
+        match (
+            &self.api_sender,
+            self.anova_devices.current_device(),
+            self.control.current_control(),
+        ) {
+            (Some(api_sender), Some(device), Some(control)) => {
+                let api_request = match control {
+                    ControlType::Start => ApiRequest::Start(ApcStartPayload {
+                        cooker_id: device.cooker_id.clone(),
+                        r#type: device.r#type.clone(),
+                        target_temperature: 35.0,
+                        unit: api_request::TemperatureUnit::C,
+                        timer: 100,
+                    }),
+
+                    ControlType::Set => ApiRequest::Set(ApcSetPayload {
+                        cooker_id: device.cooker_id.clone(),
+                        r#type: device.r#type.clone(),
+                        unit: api_request::TemperatureUnit::C,
+                    }),
+                    ControlType::Stop => ApiRequest::Stop(ApcStopPayload {
+                        cooker_id: device.cooker_id.clone(),
+                        r#type: device.r#type.clone(),
+                    }),
+                };
 
                 let _ = api_sender.send(api_request);
             }
@@ -137,7 +160,6 @@ impl App {
         match key_event.code {
             // for now, mock to make sure it works
             KeyCode::Enter => self.events.send(AppEvent::SendApiRequest),
-            KeyCode::Char('s') => self.events.send(AppEvent::SendApiRequest),
             _ => {}
         }
     }

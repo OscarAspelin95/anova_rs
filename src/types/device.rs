@@ -13,10 +13,6 @@ pub struct AnovaDevice {
 }
 
 impl AnovaDevice {
-    pub fn mock_devices() -> Vec<AnovaDevice> {
-        vec![]
-    }
-
     pub fn is_connected(&self) -> bool {
         self.apc_state.is_some()
     }
@@ -30,11 +26,11 @@ pub struct Devices {
 }
 
 impl Devices {
-    pub fn mock() -> Self {
+    pub fn new() -> Self {
         Self {
             current_index: None,
             next_index: None,
-            devices: AnovaDevice::mock_devices(),
+            devices: vec![],
         }
     }
 

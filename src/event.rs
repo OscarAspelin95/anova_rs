@@ -17,13 +17,19 @@ pub enum Event {
 
 #[derive(Clone, Debug)]
 pub enum AppEvent {
-    NextDevice,
-    PreviousDevice,
+    // global
     Quit,
     ChangeTab,
+    // device
+    NextDevice,
+    PreviousDevice,
     UpdateDevice,
     SetAppDevices(Vec<AnovaDevice>),
     SetApcState(ApcStatePayloadSimple),
+    // control
+    NextControl,
+    PreviousControl,
+    UpdateControl,
     SendApiRequest,
 }
 
