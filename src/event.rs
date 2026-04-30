@@ -1,13 +1,10 @@
 use color_eyre::eyre::OptionExt;
 use crossterm::event::Event as CrosstermEvent;
 use futures::{FutureExt, StreamExt};
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 use tokio::sync::mpsc;
 
-use crate::{
-    anova_engine::types::Writer,
-    types::{AnovaDevice, device::ApcStatePayloadSimple},
-};
+use crate::types::{AnovaDevice, device::ApcStatePayloadSimple};
 
 const TICK_FPS: f64 = 30.0;
 
@@ -27,7 +24,7 @@ pub enum AppEvent {
     UpdateDevice,
     SetAppDevices(Vec<AnovaDevice>),
     SetApcState(ApcStatePayloadSimple),
-    WsWriter(Arc<Writer>),
+    SendApiRequest,
 }
 
 #[derive(Debug)]

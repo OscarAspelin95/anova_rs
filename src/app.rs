@@ -1,16 +1,21 @@
 use crate::{
     anova_engine,
     event::{AppEvent, Event, EventHandler},
-    types::{Devices, PageTab, PageTabs},
+    types::{
+        ApiRequest, Devices, PageTab, PageTabs,
+        api_request::{self, ApcStartPayload},
+    },
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::DefaultTerminal;
+use tokio::sync::mpsc::UnboundedSender;
 
 #[derive(Debug)]
 pub struct App {
     // app
     pub events: EventHandler,
     pub running: bool,
+    pub api_sender: Option<UnboundedSender<ApiRequest>>,
     // device
     pub anova_devices: Devices,
     // tabs
@@ -23,6 +28,7 @@ impl Default for App {
             // app
             running: true,
             events: EventHandler::new(),
+            api_sender: None,
             // device
             anova_devices: Devices::mock(),
             // tabs
@@ -40,10 +46,14 @@ impl App {
     }
 
     pub async fn run(mut self, mut terminal: DefaultTerminal) -> color_eyre::Result<()> {
-        // send a clone of sender to device loop
-        anova_engine::engine::start(self.events.sender.clone()).await?;
-        //
+        // We can probably move this somewhere else.
+        let (tx, rx) = tokio::sync::mpsc::unbounded_channel::<ApiRequest>();
+        self.api_sender = Some(tx);
 
+        // We can probably move this somewhere else
+        anova_engine::engine::start(self.events.sender.clone(), rx).await?;
+
+        //
         while self.running {
             terminal.draw(|frame| frame.render_widget(&self, frame.area()))?;
 
@@ -72,11 +82,31 @@ impl App {
                     AppEvent::SetApcState(apc_state_simple) => {
                         self.anova_devices.set_apc_state(apc_state_simple);
                     }
+                    AppEvent::SendApiRequest => self.send_api_request(),
                     _ => {}
                 },
             }
         }
         Ok(())
+    }
+
+    /// Catch or log potential errors later on.
+    /// TEMP - test that it works.
+    pub fn send_api_request(&mut self) {
+        match (&self.api_sender, self.anova_devices.current_device()) {
+            (Some(api_sender), Some(device)) => {
+                let api_request = ApiRequest::Start(ApcStartPayload {
+                    cooker_id: device.cooker_id.clone(),
+                    r#type: device.r#type.clone(),
+                    target_temperature: 35.0,
+                    unit: api_request::TemperatureUnit::C,
+                    timer: 100,
+                });
+
+                let _ = api_sender.send(api_request);
+            }
+            _ => {}
+        }
     }
 
     fn handle_global_events(&mut self, key_event: KeyEvent) {
@@ -102,8 +132,12 @@ impl App {
             _ => {}
         }
     }
-    fn handle_control_events(&self, key_event: KeyEvent) {
+
+    fn handle_control_events(&mut self, key_event: KeyEvent) {
         match key_event.code {
+            // for now, mock to make sure it works
+            KeyCode::Enter => self.events.send(AppEvent::SendApiRequest),
+            KeyCode::Char('s') => self.events.send(AppEvent::SendApiRequest),
             _ => {}
         }
     }
