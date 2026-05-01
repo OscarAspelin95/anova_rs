@@ -126,12 +126,19 @@ impl App {
                     false => Span::styled("Not Connected", Style::default().fg(Color::Red)),
                 };
 
+                let running_span = match device.is_running() {
+                    true => Span::styled("Cooking", Style::default().fg(Color::Green)).slow_blink(),
+                    false => Span::styled("Idle", Style::default().fg(Color::Red)),
+                };
+
                 let header = Line::from(vec![
                     Span::raw(format!("id: {}", device.cooker_id)),
                     Span::styled(divider, Style::default().fg(Color::DarkGray)),
                     Span::raw(format!("{}", device.name)),
                     Span::styled(divider, Style::default().fg(Color::DarkGray)),
                     connection_span,
+                    Span::styled(divider, Style::default().fg(Color::DarkGray)),
+                    running_span,
                 ]);
 
                 let mut lines = vec![header];

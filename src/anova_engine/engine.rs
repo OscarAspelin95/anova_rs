@@ -31,32 +31,30 @@ pub async fn start(
     mut receiver: UnboundedReceiver<ApiRequest>,
 ) -> Result<JoinHandle<()>, AnovaError> {
     //
+    info!("starting anova engine background task...");
 
     let handle = tokio::spawn(async move {
         info!("loading environment...");
-        let _ = dotenv::dotenv().ok();
+        match dotenv::dotenv() {
+            Ok(p) => debug!("found .env file {}", p.display()),
+            Err(_) => error!("no .env file found"),
+        }
 
         info!("creating anova instance...");
-        let anova = Anova::from_env().expect("no anova token in .env file.");
+        let anova = Anova::from_env().expect("no anova token available in ENV.");
 
         info!("establishing websocket connection...");
         let (mut writer, mut reader) = anova
             .get_stream()
             .await
-            .expect("failed to create websocker stream.");
+            .expect("failed to create websocket stream.");
 
-        // we want to send the writer back to app for sending requests.
-        // <implement this here>
-
-        // continuously monitor all incoming messages from the cooker.
-        // we need a lot of proper error handling/catching to not break the loop.
+        info!("listening for messages...");
         loop {
             tokio::select! {
                 // App -> Engine -> API
                 Some(api_request) = receiver.recv() => {
 
-
-                // We need to clean this up.
                 match api_request{
                     ApiRequest::Start(apc_start_payload) => {
                         // fix, this is ugly
@@ -70,7 +68,7 @@ pub async fn start(
 
                         info!("sending APC_START to device {:?}", apc_start);
                         match writer.send(Message::from(&msg[..])).await{
-                            Ok(_) => {},
+                            Ok(_) => debug!("successfully sent."),
                             Err(e) => error!("{e}")
                         };
 
@@ -87,7 +85,7 @@ pub async fn start(
 
                         info!("sending APC_SET to device {:?}", apc_set);
                         match writer.send(Message::from(&msg[..])).await{
-                            Ok(_) => {},
+                            Ok(_) => debug!("successfully sent."),
                              Err(e) => error!("{e}")
                         };
                      },
@@ -101,7 +99,7 @@ pub async fn start(
 
                          info!("sending APC_STOP to device {:?}", apc_stop);
                          match writer.send(Message::from(&msg[..])).await{
-                             Ok(_) => {},
+                             Ok(_) => debug!("successfully sent."),
                               Err(e) => error!("{e}")
                          };
                       }
@@ -136,9 +134,9 @@ pub async fn start(
                                 Err(e) => {error!("{e}"); continue},
                             };
 
-                        debug!("{} - {:?}", c, anova_devices_list);
+                        debug!("sending {} - {:?}", c, anova_devices_list);
                         match sender.send(Event::App(AppEvent::SetAppDevices(anova_devices_list))){
-                            Ok(_) => {},
+                            Ok(_) => debug!("successfully sent."),
                             Err(e) => error!("{e}")
                         }
                     }
@@ -176,9 +174,9 @@ pub async fn start(
 
                         let apc_state_payload_simple: ApcStatePayloadSimple = apc_state_payload.into();
 
-                        debug!("{} - {:?}", c, apc_state_payload_simple);
+                        debug!("sending {} - {:?}", c, apc_state_payload_simple);
                         match sender.send(Event::App(AppEvent::SetApcState(apc_state_payload_simple))){
-                            Ok(_) => {},
+                            Ok(_) => debug!("successfully sent."),
                             Err(e) => error!("{e}")
                         }
                     }
