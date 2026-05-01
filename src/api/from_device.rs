@@ -3,6 +3,8 @@
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
 
+use crate::api::TemperatureUnit;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OtaInfo {
     pub available: bool,
@@ -88,7 +90,7 @@ pub struct Job {
     #[serde(rename = "target-temperature")]
     pub target_temperature: f64,
     #[serde(rename = "temperature-unit")]
-    pub temperature_unit: String,
+    pub temperature_unit: TemperatureUnit,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

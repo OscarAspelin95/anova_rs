@@ -27,7 +27,12 @@ pub enum AppEvent {
     UpdateDevice,
     SetAppDevices(Vec<AnovaDevice>),
     SetApcState(ApcStatePayloadSimple),
-    // control
+    //
+    IncrementSetTemperature(f64),
+    DecrementSetTemperature(f64),
+    IncrementSetTimer(u64),
+    DecrementSetTimer(u64),
+    // device interaction
     StartOrStop,
     SwitchTemperatureUnit,
 }

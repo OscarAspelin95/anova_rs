@@ -5,6 +5,7 @@ use tokio;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::Message;
+use tracing::instrument;
 use tracing::{debug, error, info};
 
 use crate::anova_engine::schema::device::AnovaCommandType;
@@ -26,6 +27,7 @@ use crate::types::AnovaDevice;
 /// args:
 /// sender - send API responses to the App.
 /// receiver - send API requests from the App.
+#[instrument]
 pub async fn start(
     sender: UnboundedSender<Event>,
     mut receiver: UnboundedReceiver<ApiRequest>,

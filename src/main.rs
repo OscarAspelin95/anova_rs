@@ -43,8 +43,6 @@ async fn main() -> color_eyre::Result<()> {
     let args = Args::parse();
     logging_setup(&args.log_file);
 
-    info!("test!");
-
     let terminal = ratatui::init();
     let result = App::new().run(terminal).await;
     ratatui::restore();

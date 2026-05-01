@@ -36,16 +36,9 @@ impl AnovaDevice {
 
     /// Either parse as enum or change API type.
     pub fn current_temperature_unit(&self) -> Option<TemperatureUnit> {
-        let temperature_unit = self
-            .apc_state
+        self.apc_state
             .as_ref()
-            .map(|apc_state| apc_state.state.job.temperature_unit.as_str());
-
-        match temperature_unit {
-            Some("C") => Some(TemperatureUnit::C),
-            Some("F") => Some(TemperatureUnit::F),
-            _ => None,
-        }
+            .map(|apc_state| apc_state.state.job.temperature_unit.clone())
     }
 }
 

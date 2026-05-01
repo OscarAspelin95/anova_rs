@@ -8,6 +8,7 @@ use ratatui::{
     widgets::{Block, BorderType, Paragraph, Widget},
 };
 
+use crate::api::TimeDisplay;
 use crate::app::App;
 
 use crate::types::PageTab;
@@ -112,8 +113,12 @@ impl App {
 
     /// Break this into better logic.
     fn render_control_page(&self, area: Rect, buf: &mut Buffer) {
-        let [control_area, help_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(1)]).areas(area);
+        let [control_area, help_area_1, help_area_2] = Layout::vertical([
+            Constraint::Fill(1),
+            Constraint::Length(1),
+            Constraint::Length(1),
+        ])
+        .areas(area);
 
         // ------------------------------------------------------------
         // status
@@ -155,6 +160,25 @@ impl App {
                             format!("{:.1}", apc_state.state.temperature_info.heater_temperature),
                             Style::default().fg(Color::Blue),
                         ),
+                        Span::raw(" | time remaining: "),
+                        Span::styled(
+                            apc_state.state.job_status.cook_time_remaining.to_display(),
+                            Style::default().fg(Color::Blue),
+                        ),
+                    ]));
+
+                    lines.push(Line::from(vec![
+                        Span::raw("Set temperature: "),
+                        Span::styled(
+                            format!("{:.1}", self.device_control.set_temperature),
+                            Style::default().fg(Color::Yellow),
+                        ),
+                        Span::styled(divider, Style::default().fg(Color::DarkGray)),
+                        Span::raw("Set timer: "),
+                        Span::styled(
+                            format!("{}", self.device_control.set_timer.to_display()),
+                            Style::default().fg(Color::Yellow),
+                        ),
                     ]));
                 }
 
@@ -176,12 +200,6 @@ impl App {
         let divider = " | ".dark_gray();
 
         Paragraph::new(Line::from(vec![
-            "↑/↓".magenta(),
-            " navigate ".into(),
-            divider.clone(),
-            "↵".magenta(),
-            " select".into(),
-            divider.clone(),
             "↹ ".magenta(),
             " change view".into(),
             divider.clone(),
@@ -192,6 +210,22 @@ impl App {
             " °C/°F".into(),
         ]))
         .alignment(Alignment::Center)
-        .render(help_area, buf);
+        .render(help_area_1, buf);
+
+        Paragraph::new(Line::from(vec![
+            "+ -".cyan(),
+            " temp ↑↓".into(),
+            divider.clone(),
+            "= _".cyan(),
+            " temp ↑↑↓↓".into(),
+            divider.clone(),
+            "[ ]".cyan(),
+            " timer ↑↓".into(),
+            divider.clone(),
+            "{ }".cyan(),
+            " timer ↑↑↓↓".into(),
+        ]))
+        .alignment(Alignment::Center)
+        .render(help_area_2, buf);
     }
 }
