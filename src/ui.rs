@@ -20,17 +20,23 @@ impl Widget for &App {
             .constraints([Constraint::Length(3), Constraint::Fill(1)])
             .split(area);
 
-        let tabs = Tabs::new(self.page_tabs.tabs.iter().map(|t| t.to_string()))
-            .select(self.page_tabs.index)
-            .block(Block::bordered().title("Anova UI"))
-            .highlight_style(Style::default().fg(Color::Cyan).bold())
-            .divider("|");
+        let tabs = Tabs::new(
+            self.page_tabs
+                .values()
+                .iter()
+                .map(|t: &PageTab| t.to_string()),
+        )
+        .select(self.page_tabs.selected().expect("must be selected"))
+        .block(Block::bordered().title("Anova UI"))
+        .highlight_style(Style::default().fg(Color::Cyan).bold())
+        .divider("|");
 
         tabs.render(chunks[0], buf);
 
-        match self.page_tabs.current_tab() {
-            &PageTab::Device => self.render_device_page(chunks[1], buf),
-            &PageTab::Control => self.render_control_page(chunks[1], buf),
+        match self.page_tabs.current() {
+            Some(&PageTab::Device) => self.render_device_page(chunks[1], buf),
+            Some(&PageTab::Control) => self.render_control_page(chunks[1], buf),
+            _ => {}
         }
     }
 }

@@ -2,7 +2,7 @@ use crate::{
     anova_engine,
     event::{AppEvent, Event, EventHandler},
     types::{
-        ApiRequest, Control, ControlType, ControlTypeIter, Devices, PageTab, PageTabs,
+        ApiRequest, ControlType, Devices, FixedValueSet, PageTab,
         api_request::{self, ApcSetPayload, ApcStartPayload, ApcStopPayload},
     },
 };
@@ -19,9 +19,9 @@ pub struct App {
     // device
     pub anova_devices: Devices,
     // control
-    pub control: Control,
+    pub control: FixedValueSet<ControlType>,
     // tabs
-    pub page_tabs: PageTabs,
+    pub page_tabs: FixedValueSet<PageTab>,
 }
 
 impl Default for App {
@@ -34,9 +34,9 @@ impl Default for App {
             // device
             anova_devices: Devices::new(),
             // control
-            control: Control::new(),
+            control: FixedValueSet::<ControlType>::new_empty(),
             // tabs
-            page_tabs: PageTabs::new(),
+            page_tabs: FixedValueSet::<PageTab>::new(Some(0), Some(0)),
         }
     }
 }
@@ -74,7 +74,7 @@ impl App {
                 Event::App(app_event) => match app_event {
                     // global
                     AppEvent::Quit => self.quit(),
-                    AppEvent::ChangeTab => self.page_tabs.next(),
+                    AppEvent::ChangeTab => self.page_tabs.increment_set(),
                     // device
                     AppEvent::NextDevice => self.anova_devices.next_device(),
                     AppEvent::PreviousDevice => self.anova_devices.previous_device(),
@@ -86,9 +86,9 @@ impl App {
                         self.anova_devices.set_apc_state(apc_state_simple);
                     }
                     // control
-                    AppEvent::NextControl => self.control.next_control(),
-                    AppEvent::PreviousControl => self.control.previous_control(),
-                    AppEvent::UpdateControl => self.control.update_control(),
+                    AppEvent::NextControl => self.control.increment(),
+                    AppEvent::PreviousControl => self.control.decrement(),
+                    AppEvent::UpdateControl => self.control.set(),
                     AppEvent::SendApiRequest => self.send_api_request(),
                     _ => {}
                 },
@@ -103,7 +103,7 @@ impl App {
         match (
             &self.api_sender,
             self.anova_devices.current_device(),
-            self.control.current_control(),
+            self.control.current(),
         ) {
             (Some(api_sender), Some(device), Some(control)) => {
                 let api_request = match control {
@@ -167,9 +167,10 @@ impl App {
     pub fn handle_key_events(&mut self, key_event: KeyEvent) -> color_eyre::Result<()> {
         self.handle_global_events(key_event);
 
-        match self.page_tabs.current_tab() {
-            PageTab::Device => self.handle_device_events(key_event),
-            PageTab::Control => self.handle_control_events(key_event),
+        match self.page_tabs.current() {
+            Some(PageTab::Device) => self.handle_device_events(key_event),
+            Some(PageTab::Control) => self.handle_control_events(key_event),
+            _ => {}
         }
 
         Ok(())
