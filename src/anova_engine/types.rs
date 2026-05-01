@@ -47,7 +47,7 @@ impl Anova {
     /// We can prettify this later on.
     pub fn url(&self) -> Result<Url, AnovaError> {
         let url = Url::parse(&format!(
-            "wss://devices.anovaculinary.io?token={}&supportedAccessories=APC,APO",
+            "wss://devices.anovaculinary.io?token={}&supportedAccessories=APC",
             self.token
         ))?;
 

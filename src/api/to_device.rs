@@ -1,15 +1,8 @@
+//! outgoing API payload to the device.
+
+use super::types::TemperatureUnit;
 use serde::Serialize;
 use uuid::Uuid;
-
-// --------------------------------------
-/// App -> Engine
-#[derive(Debug, Clone, Serialize)]
-pub enum TemperatureUnit {
-    #[serde(rename = "C")]
-    C, // celsius
-    #[serde(rename = "F")]
-    F, // farenheit
-}
 
 /// App -> Engine
 #[derive(Debug, Clone, Serialize)]

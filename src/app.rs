@@ -1,11 +1,10 @@
 use crate::{
     anova_engine,
+    api::{ApcSetPayload, ApcStartPayload, ApcStopPayload, ApiRequest, TemperatureUnit},
     event::{AppEvent, Event, EventHandler},
-    types::{
-        ApiRequest, ControlType, Devices, FixedValueSet, PageTab,
-        api_request::{self, ApcSetPayload, ApcStartPayload, ApcStopPayload},
-    },
+    types::{DeviceControl, Devices, FixedValueSet, PageTab},
 };
+
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::DefaultTerminal;
 use tokio::sync::mpsc::UnboundedSender;
@@ -18,8 +17,8 @@ pub struct App {
     pub api_sender: Option<UnboundedSender<ApiRequest>>,
     // device
     pub anova_devices: Devices,
-    // control
-    pub control: FixedValueSet<ControlType>,
+    // device control
+    pub device_control: FixedValueSet<DeviceControl>,
     // tabs
     pub page_tabs: FixedValueSet<PageTab>,
 }
@@ -33,8 +32,8 @@ impl Default for App {
             api_sender: None,
             // device
             anova_devices: Devices::new(),
-            // control
-            control: FixedValueSet::<ControlType>::new_empty(),
+            // device control
+            device_control: FixedValueSet::<DeviceControl>::new(Some(0), Some(0)),
             // tabs
             page_tabs: FixedValueSet::<PageTab>::new(Some(0), Some(0)),
         }
@@ -85,11 +84,10 @@ impl App {
                     AppEvent::SetApcState(apc_state_simple) => {
                         self.anova_devices.set_apc_state(apc_state_simple);
                     }
-                    // control
-                    AppEvent::NextControl => self.control.increment(),
-                    AppEvent::PreviousControl => self.control.decrement(),
-                    AppEvent::UpdateControl => self.control.set(),
-                    AppEvent::SendApiRequest => self.send_api_request(),
+                    // api requests
+                    AppEvent::StartOrStop => self.send_start_or_stop_request(),
+                    AppEvent::SwitchTemperatureUnit => self.send_set_request(),
+
                     _ => {}
                 },
             }
@@ -99,37 +97,48 @@ impl App {
 
     /// Catch or log potential errors later on.
     /// TEMP - test that it works.
-    pub fn send_api_request(&mut self) {
-        match (
-            &self.api_sender,
-            self.anova_devices.current_device(),
-            self.control.current(),
-        ) {
-            (Some(api_sender), Some(device), Some(control)) => {
-                let api_request = match control {
-                    ControlType::Start => ApiRequest::Start(ApcStartPayload {
-                        cooker_id: device.cooker_id.clone(),
-                        r#type: device.r#type.clone(),
-                        target_temperature: 35.0,
-                        unit: api_request::TemperatureUnit::C,
-                        timer: 100,
-                    }),
+    pub fn send_start_or_stop_request(&mut self) {
+        let (api_sender, device) = match (&self.api_sender, self.anova_devices.current_device()) {
+            (Some(api_sender), Some(device)) => (api_sender, device),
+            _ => return,
+        };
 
-                    ControlType::Set => ApiRequest::Set(ApcSetPayload {
-                        cooker_id: device.cooker_id.clone(),
-                        r#type: device.r#type.clone(),
-                        unit: api_request::TemperatureUnit::C,
-                    }),
-                    ControlType::Stop => ApiRequest::Stop(ApcStopPayload {
-                        cooker_id: device.cooker_id.clone(),
-                        r#type: device.r#type.clone(),
-                    }),
-                };
+        let api_request = match device.is_running() {
+            false => ApiRequest::Start(ApcStartPayload {
+                cooker_id: device.cooker_id.clone(),
+                r#type: device.r#type.clone(),
+                target_temperature: 55.0,
+                unit: TemperatureUnit::C,
+                timer: 100,
+            }),
+            true => ApiRequest::Stop(ApcStopPayload {
+                cooker_id: device.cooker_id.clone(),
+                r#type: device.r#type.clone(),
+            }),
+            _ => return,
+        };
 
-                let _ = api_sender.send(api_request);
-            }
-            _ => {}
-        }
+        let _ = api_sender.send(api_request);
+    }
+    pub fn send_set_request(&mut self) {
+        let (api_sender, device) = match (&self.api_sender, self.anova_devices.current_device()) {
+            (Some(api_sender), Some(device)) => (api_sender, device),
+            _ => return,
+        };
+
+        let new_temperature_unit = match device.current_temperature_unit() {
+            Some(temperature_unit) if temperature_unit == TemperatureUnit::C => TemperatureUnit::F,
+            Some(temperature_unit) if temperature_unit == TemperatureUnit::F => TemperatureUnit::C,
+            _ => panic!(""),
+        };
+
+        let api_request = ApiRequest::Set(ApcSetPayload {
+            cooker_id: device.cooker_id.clone(),
+            r#type: device.r#type.clone(),
+            unit: new_temperature_unit,
+        });
+
+        let _ = api_sender.send(api_request);
     }
 
     fn handle_global_events(&mut self, key_event: KeyEvent) {
@@ -159,7 +168,10 @@ impl App {
     fn handle_control_events(&mut self, key_event: KeyEvent) {
         match key_event.code {
             // for now, mock to make sure it works
-            KeyCode::Enter => self.events.send(AppEvent::SendApiRequest),
+            KeyCode::Char('S') | KeyCode::Char('s') => self.events.send(AppEvent::StartOrStop),
+            KeyCode::Char('T') | KeyCode::Char('t') => {
+                self.events.send(AppEvent::SwitchTemperatureUnit)
+            }
             _ => {}
         }
     }

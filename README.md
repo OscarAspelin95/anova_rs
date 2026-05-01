@@ -17,6 +17,13 @@ NOTE - requires an Anova token, obtained through the [Anova Oven](https://play.g
 ANOVA_TOKEN="anova-ey........"
 ```
 
+## ToDo
+* Move Anova API types to separate crate.
+* Write logs to file for debugging.
+* Fix control page do show only the necessary stuff. 
+* Add a device details tab/page
+* Add water temp / target temp plot?
+
 ## License
 
 Copyright (c) OscarAspelin <oscar.asp@hotmail.com>

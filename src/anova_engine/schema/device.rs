@@ -1,6 +1,7 @@
 use crate::types::AnovaDevice;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use strum::Display;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AnovaDevices {
@@ -15,7 +16,7 @@ pub struct AnovaCommand {
 }
 
 /// Docstring
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Display)]
 pub enum AnovaCommandType {
     // visible devices
     #[serde(rename = "EVENT_APC_WIFI_LIST")]
@@ -29,4 +30,6 @@ pub enum AnovaCommandType {
     //
     #[serde(rename = "EVENT_APC_STATE")]
     EventApcState,
+    #[serde(rename = "RESPONSE")]
+    Response,
 }

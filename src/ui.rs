@@ -42,6 +42,7 @@ impl Widget for &App {
 }
 
 impl App {
+    /// Break this into better logic.
     fn render_device_page(&self, area: Rect, buf: &mut Buffer) {
         // split layout
         let [list_area, help_area] =
@@ -109,11 +110,13 @@ impl App {
         .render(help_area, buf);
     }
 
+    /// Break this into better logic.
     fn render_control_page(&self, area: Rect, buf: &mut Buffer) {
         let [control_area, help_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Length(1)]).areas(area);
 
-        // render control
+        // ------------------------------------------------------------
+        // status
         let text = match &self.anova_devices.current_device() {
             Some(device) => {
                 let divider = " | ";
@@ -137,12 +140,12 @@ impl App {
                     lines.push(Line::from(vec![
                         Span::raw("water temp: "),
                         Span::styled(
-                            format!("{:.1}", apc_state.temperature.water_temperature),
+                            format!("{:.1}", apc_state.state.temperature_info.water_temperature),
                             Style::default().fg(Color::Blue),
                         ),
                         Span::raw(" | heater temp: "),
                         Span::styled(
-                            format!("{:.1}", apc_state.temperature.heater_temperature),
+                            format!("{:.1}", apc_state.state.temperature_info.heater_temperature),
                             Style::default().fg(Color::Blue),
                         ),
                     ]));
@@ -153,7 +156,7 @@ impl App {
             None => Text::from("No device selected"),
         };
 
-        // add conditional color rendering based on if device or not.
+        //
         Paragraph::new(text)
             .block(Block::bordered().border_type(BorderType::Rounded))
             .fg(Color::DarkGray)
@@ -161,7 +164,8 @@ impl App {
             .centered()
             .render(control_area, buf);
 
-        // show help text
+        // ------------------------------------------------------------
+        // help text
         let divider = " | ".dark_gray();
 
         Paragraph::new(Line::from(vec![
@@ -169,10 +173,16 @@ impl App {
             " navigate ".into(),
             divider.clone(),
             "↵".magenta(),
-            " select ".into(),
+            " select".into(),
             divider.clone(),
             "↹ ".magenta(),
-            " change view ".into(),
+            " change view".into(),
+            divider.clone(),
+            "s".cyan(),
+            " start/stop".into(),
+            divider.clone(),
+            "t".cyan(),
+            " °C/°F".into(),
         ]))
         .alignment(Alignment::Center)
         .render(help_area, buf);

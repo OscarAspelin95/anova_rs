@@ -3,13 +3,14 @@ use strum::IntoEnumIterator;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct FixedValueSet<T> {
-    // set by the user.
+    // current value => self.values[self.index].
     index: Option<usize>,
     // currently highlighted.
     selected: Option<usize>,
     values: Vec<T>,
 }
 
+/// Can we add a method for converting to ratatui list?
 impl<T: IntoEnumIterator> FixedValueSet<T> {
     pub fn new(index: Option<usize>, selected: Option<usize>) -> Self {
         Self {
@@ -40,6 +41,7 @@ impl<T: IntoEnumIterator> FixedValueSet<T> {
     }
 
     /// Wrap around increment for selected.
+    /// should be renamed to increment_selected
     pub fn increment(&mut self) {
         let selected = match self.selected {
             None => return,
@@ -50,6 +52,7 @@ impl<T: IntoEnumIterator> FixedValueSet<T> {
     }
 
     /// Wrap around decrement for selected.
+    /// should be renamed to decrement_selected
     pub fn decrement(&mut self) {
         let selected = match self.selected {
             None => return,
@@ -60,6 +63,7 @@ impl<T: IntoEnumIterator> FixedValueSet<T> {
     }
 
     /// Sets `index` = `selected`.
+    /// should be renamed to set_selected.
     pub fn set(&mut self) {
         match (self.index, self.selected) {
             // nothing set, but something selected

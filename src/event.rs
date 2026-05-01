@@ -4,7 +4,8 @@ use futures::{FutureExt, StreamExt};
 use std::time::Duration;
 use tokio::sync::mpsc;
 
-use crate::types::{AnovaDevice, device::ApcStatePayloadSimple};
+use crate::api::ApcStatePayloadSimple;
+use crate::types::AnovaDevice;
 
 const TICK_FPS: f64 = 30.0;
 
@@ -27,10 +28,8 @@ pub enum AppEvent {
     SetAppDevices(Vec<AnovaDevice>),
     SetApcState(ApcStatePayloadSimple),
     // control
-    NextControl,
-    PreviousControl,
-    UpdateControl,
-    SendApiRequest,
+    StartOrStop,
+    SwitchTemperatureUnit,
 }
 
 #[derive(Debug)]
