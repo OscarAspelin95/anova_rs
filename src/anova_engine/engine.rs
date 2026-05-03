@@ -6,7 +6,7 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::instrument;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 use crate::anova_engine::schema::device::AnovaCommandType;
 use crate::api::{AnovaResponsePayload, ApcStatePayload, Cooker, UserStatePayload};
@@ -25,10 +25,12 @@ use crate::types::AnovaDevice;
 /// args:
 /// sender - send API responses to the App.
 /// receiver - send API requests from the App.
+/// anova_token - optional anova token (otherwise, tries reading from ENV).
 #[instrument]
 pub async fn start(
     sender: UnboundedSender<Event>,
     mut receiver: UnboundedReceiver<ApiRequest>,
+    anova_token: Option<String>,
 ) -> Result<JoinHandle<()>, AnovaError> {
     //
     info!("starting anova engine background task...");
@@ -41,7 +43,14 @@ pub async fn start(
         }
 
         info!("creating anova instance...");
-        let anova = Anova::from_env().expect("no anova token available in ENV.");
+        let anova = match (Anova::from_env(), anova_token) {
+            (Ok(anova), _) => anova,
+            (Err(_), Some(anova_token)) => {
+                warn!("failed to read anova token from environment");
+                Anova::new(anova_token)
+            }
+            _ => panic!("no ANOVA_TOKEN provided or found in ENV."),
+        };
 
         info!("establishing websocket connection...");
         let (mut writer, mut reader) = anova

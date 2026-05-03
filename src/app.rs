@@ -49,13 +49,17 @@ impl App {
         Self::default()
     }
 
-    pub async fn run(mut self, mut terminal: DefaultTerminal) -> color_eyre::Result<()> {
+    pub async fn run(
+        mut self,
+        mut terminal: DefaultTerminal,
+        anova_token: Option<String>,
+    ) -> color_eyre::Result<()> {
         // We can probably move this somewhere else.
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel::<ApiRequest>();
         self.api_sender = Some(tx);
 
         // We can probably move this somewhere else
-        anova_engine::engine::start(self.events.sender.clone(), rx).await?;
+        anova_engine::engine::start(self.events.sender.clone(), rx, anova_token).await?;
 
         //
         while self.running {

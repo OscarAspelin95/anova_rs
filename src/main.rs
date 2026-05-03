@@ -40,7 +40,7 @@ async fn main() -> color_eyre::Result<()> {
     logging_setup(&args.log_file);
 
     let terminal = ratatui::init();
-    let result = App::new().run(terminal).await;
+    let result = App::new().run(terminal, args.anova_token).await;
     ratatui::restore();
 
     result
