@@ -12,6 +12,6 @@ pub struct Args {
     )]
     pub log_file: PathBuf,
 
-    #[arg(short, long, required = false, help = "Anova token")]
+    #[arg(short, long, required = false, help = "anova token (optional)")]
     pub anova_token: Option<String>,
 }
