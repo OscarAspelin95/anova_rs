@@ -9,7 +9,7 @@ use ratatui::{
 };
 
 use crate::api::{
-    Job, JobMode, JobStatus, JobStatusState, NetworkInfo, PinInfo, SystemInfo2640, TemperatureInfo,
+    Job, JobStatus, JobStatusState, NetworkInfo, PinInfo, SystemInfo2640, TemperatureInfo,
     TimeDisplay,
 };
 use crate::app::App;
@@ -81,7 +81,7 @@ impl App {
             })
             .collect();
 
-        if items.len() > 0 {
+        if !items.is_empty() {
             List::new(items)
                 .block(
                     Block::bordered()

@@ -14,8 +14,8 @@ pub struct FixedValueSet<T> {
 impl<T: IntoEnumIterator> FixedValueSet<T> {
     pub fn new(index: Option<usize>, selected: Option<usize>) -> Self {
         Self {
-            index: index,
-            selected: selected,
+            index,
+            selected,
             values: T::iter().collect(),
         }
     }
@@ -85,7 +85,7 @@ impl<T: IntoEnumIterator> FixedValueSet<T> {
     }
 
     /// Current value.
-    pub fn current<'a>(&'a self) -> Option<&'a T> {
+    pub fn current(&self) -> Option<&T> {
         match self.index {
             None => None,
             Some(current_index) => self.values.get(current_index),

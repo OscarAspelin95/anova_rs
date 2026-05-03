@@ -1,1 +1,1 @@
-pub const TOKEN_PREFIX: &'static str = "anova-ey";
+pub const TOKEN_PREFIX: &str = "anova-ey";

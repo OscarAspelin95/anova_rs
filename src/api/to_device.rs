@@ -56,7 +56,7 @@ impl From<ApcStartPayload> for ApcStart {
         Self {
             command: ApiRequestCommand::CmdApcStart,
             request_id: Uuid::new_v4(),
-            payload: payload,
+            payload,
         }
     }
 }
@@ -85,7 +85,7 @@ impl From<ApcStopPayload> for ApcStop {
         Self {
             command: ApiRequestCommand::CmdApcStop,
             request_id: Uuid::new_v4(),
-            payload: payload,
+            payload,
         }
     }
 }
@@ -115,7 +115,7 @@ impl From<ApcSetPayload> for ApcSet {
         Self {
             command: ApiRequestCommand::CmdApcSetTemperatureUnit,
             request_id: Uuid::new_v4(),
-            payload: payload,
+            payload,
         }
     }
 }

@@ -34,9 +34,9 @@ impl Anova {
 
     /// try reading token automatically from .env file.
     pub fn from_env() -> Result<Self, AnovaError> {
-        let token = std::env::var("ANOVA_TOKEN").or(Err(AnovaError::EnvError(format!(
-            "env var `ANOVA_TOKEN` not found in .env file."
-        ))))?;
+        let token = std::env::var("ANOVA_TOKEN").or(Err(AnovaError::EnvError(
+            "env var `ANOVA_TOKEN` not found in .env file.".to_string(),
+        )))?;
 
         // will panic if token is invalid.
         let anova = Self { token };

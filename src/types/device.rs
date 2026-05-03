@@ -43,6 +43,12 @@ pub struct Devices {
     pub devices: Vec<AnovaDevice>,
 }
 
+impl Default for Devices {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Devices {
     pub fn new() -> Self {
         Self {
@@ -84,7 +90,7 @@ impl Devices {
         }
     }
 
-    pub fn current_device<'a>(&'a self) -> Option<&'a AnovaDevice> {
+    pub fn current_device(&self) -> Option<&AnovaDevice> {
         match self.current_index {
             None => None,
             Some(current_index) => self.devices.get(current_index),
@@ -101,15 +107,12 @@ impl Devices {
     }
 
     pub fn set_apc_state(&mut self, apc_state: ApcStatePayload) {
-        match self
+        if let Some(device) = self
             .devices
             .iter_mut()
             .find(|d| d.cooker_id == apc_state.cooker_id)
         {
-            Some(device) => {
-                device.apc_state = Some(apc_state);
-            }
-            None => {}
+            device.apc_state = Some(apc_state);
         }
     }
 }

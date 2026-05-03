@@ -3,7 +3,6 @@ use clap::Parser;
 use std::fs::File;
 use std::fs::create_dir_all;
 use std::path::Path;
-use tracing::info;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::fmt;
 use tracing_subscriber::layer::SubscriberExt;
@@ -18,16 +17,13 @@ pub mod types;
 pub mod ui;
 
 fn logging_setup(log_file: &Path) {
-    match log_file.parent() {
-        Some(parent) => create_dir_all(parent).expect(&format!(
-            "failed to create parent directory {}",
-            parent.display()
-        )),
-        None => {}
+    if let Some(parent) = log_file.parent() {
+        create_dir_all(parent)
+            .unwrap_or_else(|_| panic!("failed to create parent directory {}", parent.display()))
     }
 
-    let f =
-        File::create(log_file).expect(&format!("failed to create log file {}", log_file.display()));
+    let f = File::create(log_file)
+        .unwrap_or_else(|_| panic!("failed to create log file {}", log_file.display()));
 
     let file_layer = fmt::layer().with_writer(f).with_ansi(false);
     tracing_subscriber::registry()
