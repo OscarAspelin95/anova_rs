@@ -35,6 +35,11 @@ This project is licensed under the MIT license ([LICENSE] or <http://opensource.
 [LICENSE]: ./LICENSE
 
 ## Current State
-This project is still in very early development so expect things to change.
+This project is still in very early development so expect things to change. The priority list is as follows:
+- [ ] Bugfixes. There is a few I know of and more will probably appear.
+- [ ] Add tests. There are currently NO tests at all.
+- [ ] UI tweaks. Change some colors, make the control more ergonomic.
+- [ ] Temperature plot. A line plot of the current temperature -> target tempreature.
+- [ ] Move the APC API to a separate crate.
 
 ![img](assets/screenshot.png)
