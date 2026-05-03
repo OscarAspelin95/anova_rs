@@ -69,8 +69,8 @@ impl App {
 
                 // active
                 let t = match Some(i) == self.anova_devices.current_index {
-                    true => "*",
-                    false => "",
+                    true => "● ",
+                    false => "○ ",
                 };
 
                 ListItem::new(format!(
