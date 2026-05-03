@@ -33,3 +33,8 @@ Options:
 Copyright (c) Oscar Aspelin <oscar.aspelin@gmail.com>
 This project is licensed under the MIT license ([LICENSE] or <http://opensource.org/licenses/MIT>)
 [LICENSE]: ./LICENSE
+
+## Current State
+This project is still in very early development so expect things to change.
+
+![img](assets/screenshot.png)
