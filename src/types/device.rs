@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::{ApcStatePayloadSimple, TemperatureUnit};
+use crate::api::{ApcStatePayload, JobMode, TemperatureUnit};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnovaDevice {
@@ -11,7 +11,7 @@ pub struct AnovaDevice {
     #[serde(rename = "pairedAt")]
     pub paired_at: String,
     // not sure about this
-    pub apc_state: Option<ApcStatePayloadSimple>,
+    pub apc_state: Option<ApcStatePayload>,
 }
 
 impl AnovaDevice {
@@ -19,22 +19,16 @@ impl AnovaDevice {
         self.apc_state.is_some()
     }
 
-    /// We can make this better with .map(...).
-    ///
-    /// This does not work, we need a more reliable approach.
+    /// We can probably make this better with .map(...).
     pub fn is_running(&self) -> bool {
         let apc_state = match &self.apc_state {
             None => return false,
             Some(apc_state) => apc_state,
         };
 
-        match apc_state.state.job.mode.as_str() {
-            "COOK" => true,
-            _ => false,
-        }
+        apc_state.state.job.mode == JobMode::Cook
     }
 
-    /// Either parse as enum or change API type.
     pub fn current_temperature_unit(&self) -> Option<TemperatureUnit> {
         self.apc_state
             .as_ref()
@@ -106,14 +100,14 @@ impl Devices {
         self.next_index = Some(0);
     }
 
-    pub fn set_apc_state(&mut self, apc_state_simple: ApcStatePayloadSimple) {
+    pub fn set_apc_state(&mut self, apc_state: ApcStatePayload) {
         match self
             .devices
             .iter_mut()
-            .find(|d| d.cooker_id == apc_state_simple.cooker_id)
+            .find(|d| d.cooker_id == apc_state.cooker_id)
         {
             Some(device) => {
-                device.apc_state = Some(apc_state_simple);
+                device.apc_state = Some(apc_state);
             }
             None => {}
         }

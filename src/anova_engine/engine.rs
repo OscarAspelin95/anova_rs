@@ -9,9 +9,7 @@ use tracing::instrument;
 use tracing::{debug, error, info};
 
 use crate::anova_engine::schema::device::AnovaCommandType;
-use crate::api::{
-    AnovaResponsePayload, ApcStatePayload, ApcStatePayloadSimple, Cooker, UserStatePayload,
-};
+use crate::api::{AnovaResponsePayload, ApcStatePayload, Cooker, UserStatePayload};
 use crate::api::{ApcSet, ApcStart, ApcStop, ApiRequest};
 use crate::event::{AppEvent, Event};
 
@@ -174,10 +172,8 @@ pub async fn start(
                                 Err(e) => {error!("{e}"); continue},
                             };
 
-                        let apc_state_payload_simple: ApcStatePayloadSimple = apc_state_payload.into();
-
-                        debug!("sending {} - {:?}", c, apc_state_payload_simple);
-                        match sender.send(Event::App(AppEvent::SetApcState(apc_state_payload_simple))){
+                        debug!("sending {} - {:?}", c, apc_state_payload);
+                        match sender.send(Event::App(AppEvent::SetApcState(apc_state_payload))){
                             Ok(_) => debug!("successfully sent."),
                             Err(e) => error!("{e}")
                         }

@@ -82,8 +82,8 @@ impl App {
                     AppEvent::SetAppDevices(identified_devices) => {
                         self.anova_devices.update_devices(identified_devices);
                     }
-                    AppEvent::SetApcState(apc_state_simple) => {
-                        self.anova_devices.set_apc_state(apc_state_simple);
+                    AppEvent::SetApcState(apc_state) => {
+                        self.anova_devices.set_apc_state(apc_state);
                     }
                     // api requests
                     AppEvent::StartOrStop => self.send_start_or_stop_request(),
@@ -208,7 +208,7 @@ impl App {
     fn handle_control_events(&mut self, key_event: KeyEvent) {
         match key_event.code {
             // for now, mock to make sure it works
-            KeyCode::Char('S') | KeyCode::Char('s') => self.events.send(AppEvent::StartOrStop),
+            KeyCode::Enter => self.events.send(AppEvent::StartOrStop),
             KeyCode::Char('T') | KeyCode::Char('t') => {
                 self.events.send(AppEvent::SwitchTemperatureUnit)
             }

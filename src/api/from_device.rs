@@ -1,7 +1,7 @@
 //! incoming raw API payload from the device.
 
 use serde::{Deserialize, Serialize};
-use strum::EnumString;
+use strum::{Display, EnumString};
 
 use crate::api::TemperatureUnit;
 
@@ -79,12 +79,36 @@ pub struct DutyCycle {
     pub duty_cycle: f64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Display, EnumString)]
+pub enum JobMode {
+    #[serde(rename = "IDLE")]
+    Idle,
+    #[serde(rename = "COOK")]
+    Cook,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Display, EnumString)]
+pub enum JobStatusState {
+    #[strum(to_string = "-")]
+    #[serde(rename = "")]
+    Empty,
+    #[strum(to_string = "Cooking")]
+    #[serde(rename = "COOKING")]
+    Cooking,
+    #[strum(to_string = "Preheating")]
+    #[serde(rename = "PREHEATING")]
+    PreHeating,
+    #[strum(to_string = "Maintaining")]
+    #[serde(rename = "MAINTAINING")]
+    Maintaining,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Job {
     #[serde(rename = "cook-time-seconds")]
     pub cook_time_seconds: u32,
     pub id: String,
-    pub mode: String,
+    pub mode: JobMode,
     #[serde(rename = "ota-url")]
     pub ota_url: String,
     #[serde(rename = "target-temperature")]
@@ -101,7 +125,7 @@ pub struct JobStatus {
     pub job_start_systick: u64,
     #[serde(rename = "provisioning-pairing-code")]
     pub provisioning_pairing_code: u32,
-    pub state: String,
+    pub state: JobStatusState,
     #[serde(rename = "state-change-systick")]
     pub state_change_systick: u64,
 }
