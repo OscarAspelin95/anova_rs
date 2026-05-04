@@ -1,5 +1,7 @@
 //! outgoing API payload to the device.
 
+use crate::api::Celsius;
+
 use super::types::TemperatureUnit;
 use serde::Serialize;
 use uuid::Uuid;
@@ -36,7 +38,7 @@ pub struct ApcStartPayload {
     #[serde(rename = "type")]
     pub r#type: String,
     #[serde(rename = "targetTemperature")]
-    pub target_temperature: f64,
+    pub target_temperature: Celsius,
     pub unit: TemperatureUnit,
     pub timer: u64,
 }

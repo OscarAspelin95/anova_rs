@@ -1,3 +1,6 @@
+//! we can potentially put a .to_component() method
+//! on ApcState to simplify some of the component generation.
+
 use ratatui::layout::{Alignment, Constraint, Direction, Layout};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
@@ -8,10 +11,7 @@ use ratatui::{
     widgets::{Block, BorderType, Paragraph, Widget},
 };
 
-use crate::api::{
-    ApcSet, ApcState, Job, JobStatus, JobStatusState, NetworkInfo, PinInfo, SystemInfo2640,
-    TemperatureInfo, TemperatureUnit, TimeDisplay,
-};
+use crate::api::{ApcState, JobStatusState, TimeDisplay};
 use crate::app::App;
 
 use crate::types::{AnovaDevice, PageTab};
@@ -136,7 +136,7 @@ impl App {
             " start/stop".into(),
             " │ ".dark_gray(),
             "t".cyan(),
-            " °C/°F".into(),
+            " °C ↔ °F".into(),
         ]))
         .alignment(Alignment::Center)
         .render(area_h1, buf);
@@ -159,36 +159,34 @@ impl App {
     }
 
     fn render_control_temperature(&self, apc_state: &ApcState, temp_area: Rect, buf: &mut Buffer) {
-        let temp = apc_state.temperature_info_auto();
-
         let temp_lines = vec![
             Line::from(vec![
                 Span::styled("water   ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!(
-                        "{:.1}° {}",
-                        temp.water_temperature, apc_state.job.temperature_unit
-                    ),
+                    apc_state
+                        .temperature_info
+                        .water_temperature
+                        .to_display(&apc_state.job.temperature_unit),
                     Style::default().fg(Color::Blue).bold(),
                 ),
             ]),
             Line::from(vec![
                 Span::styled("heater  ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!(
-                        "{:.1}° {}",
-                        temp.heater_temperature, apc_state.job.temperature_unit
-                    ),
+                    apc_state
+                        .temperature_info
+                        .heater_temperature
+                        .to_display(&apc_state.job.temperature_unit),
                     Style::default().fg(Color::Red),
                 ),
             ]),
             Line::from(vec![
                 Span::styled("triac   ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!(
-                        "{:.1}° {}",
-                        temp.triac_temperature, apc_state.job.temperature_unit
-                    ),
+                    apc_state
+                        .temperature_info
+                        .triac_temperature
+                        .to_display(&apc_state.job.temperature_unit),
                     Style::default().fg(Color::Gray),
                 ),
             ]),
@@ -245,7 +243,10 @@ impl App {
             .render(header_area, buf);
     }
 
-    fn render_control_job(&self, job: &Job, job_status: &JobStatus, area: Rect, buf: &mut Buffer) {
+    fn render_control_job(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
+        let job = &apc_state.job;
+        let job_status = &apc_state.job_status;
+
         // not sure I like this logic, but seems to work for now.
         let remaining_secs = match &job_status.state {
             JobStatusState::Maintaining => 0,
@@ -300,11 +301,7 @@ impl App {
             Line::from(vec![
                 Span::styled("target  ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!(
-                        "{:.1}° {:?}",
-                        job.target_temperature_auto(),
-                        job.temperature_unit
-                    ),
+                    job.target_temperature.to_display(&job.temperature_unit),
                     Style::default().fg(Color::Yellow),
                 ),
             ]),
@@ -345,7 +342,9 @@ impl App {
             .render(area, buf);
     }
 
-    fn render_network_page(&self, net: &NetworkInfo, area: Rect, buf: &mut Buffer) {
+    fn render_network_page(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
+        let net = &apc_state.network_info;
+
         let net_lines = vec![
             Line::from(vec![
                 Span::styled("ssid    ", Style::default().fg(Color::DarkGray)),
@@ -375,7 +374,9 @@ impl App {
             .render(area, buf);
     }
 
-    fn render_pin_page(&self, pins: &PinInfo, area: Rect, buf: &mut Buffer) {
+    fn render_pin_page(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
+        let pins = &apc_state.pin_info;
+
         let ok = Style::default().fg(Color::Green);
         let err = Style::default().fg(Color::Red);
 
@@ -411,7 +412,9 @@ impl App {
             .render(area, buf);
     }
 
-    fn render_sys_info(&self, sys: &SystemInfo2640, area: Rect, buf: &mut Buffer) {
+    fn render_sys_info(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
+        let sys = &apc_state.system_info_2640;
+
         let divider = Span::styled(" │ ", Style::default().fg(Color::DarkGray));
 
         let sha = &sys.firmware_version_sha;
@@ -435,7 +438,8 @@ impl App {
             divider.clone(),
             Span::styled("mcu ", Style::default().fg(Color::DarkGray)),
             Span::styled(
-                format!("{:.1}°", sys.mcu_temperature),
+                sys.mcu_temperature
+                    .to_display(&apc_state.job.temperature_unit),
                 Style::default().fg(Color::Gray),
             ),
         ]);
@@ -449,16 +453,14 @@ impl App {
             .render(area, buf);
     }
 
-    fn render_set_values(&self, unit: &TemperatureUnit, area: Rect, buf: &mut Buffer) {
+    fn render_set_values(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
         let ctrl_lines = vec![
             Line::from(vec![
                 Span::styled("set temp  ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!(
-                        "{:.1}° {}",
-                        self.device_control.set_temperature_auto(unit),
-                        unit
-                    ),
+                    self.device_control
+                        .set_temperature
+                        .to_display(&apc_state.job.temperature_unit),
                     Style::default().fg(Color::Yellow).bold(),
                 ),
             ]),
@@ -535,11 +537,11 @@ impl App {
 
         // render body.
         self.render_control_temperature(&apc.state, temp_panel, buf);
-        self.render_control_job(&apc.state.job, &apc.state.job_status, job_panel, buf);
-        self.render_network_page(&apc.state.network_info, network_panel, buf);
-        self.render_pin_page(&apc.state.pin_info, pin_panel, buf);
-        self.render_sys_info(&apc.state.system_info_2640, sysinfo_area, buf);
-        self.render_set_values(&apc.state.job.temperature_unit, set_panel, buf);
+        self.render_control_job(&apc.state, job_panel, buf);
+        self.render_network_page(&apc.state, network_panel, buf);
+        self.render_pin_page(&apc.state, pin_panel, buf);
+        self.render_sys_info(&apc.state, sysinfo_area, buf);
+        self.render_set_values(&apc.state, set_panel, buf);
         self.render_control_help(help_area_1, help_area_2, buf);
     }
 }

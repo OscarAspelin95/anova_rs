@@ -144,7 +144,7 @@ pub async fn start(
                             };
 
                         debug!("sending {} - {:?}", c, anova_devices_list);
-                        match sender.send(Event::App(AppEvent::SetAppDevices(anova_devices_list))){
+                        match sender.send(Event::App(AppEvent::SetAppDevices(Box::new(anova_devices_list)))){
                             Ok(_) => debug!("successfully sent."),
                             Err(e) => error!("{e}")
                         }
@@ -182,7 +182,7 @@ pub async fn start(
                             };
 
                         debug!("sending {} - {:?}", c, apc_state_payload);
-                        match sender.send(Event::App(AppEvent::SetApcState(apc_state_payload))){
+                        match sender.send(Event::App(AppEvent::SetApcState(Box::new(apc_state_payload)))){
                             Ok(_) => debug!("successfully sent."),
                             Err(e) => error!("{e}")
                         }

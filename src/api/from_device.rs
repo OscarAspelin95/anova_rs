@@ -1,9 +1,10 @@
 //! incoming raw API payload from the device.
+//! later, we should move to one script/mod per anova command.
 
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-use crate::api::TemperatureUnit;
+use crate::api::{Celsius, TemperatureUnit};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OtaInfo {
@@ -14,8 +15,6 @@ pub struct OtaInfo {
     pub version: String,
 }
 
-/// not sure if this got lost somewhere...
-/// we probably need this.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Cooker {
     #[serde(rename = "cookerId")]
@@ -112,18 +111,9 @@ pub struct Job {
     #[serde(rename = "ota-url")]
     pub ota_url: String,
     #[serde(rename = "target-temperature")]
-    pub target_temperature: f64,
+    pub target_temperature: Celsius, // always celsius
     #[serde(rename = "temperature-unit")]
     pub temperature_unit: TemperatureUnit,
-}
-
-impl Job {
-    pub fn target_temperature_auto(&self) -> f64 {
-        match self.temperature_unit {
-            TemperatureUnit::C => self.target_temperature,
-            TemperatureUnit::F => c_to_f(self.target_temperature),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -182,7 +172,7 @@ pub struct SystemInfo2640 {
     #[serde(rename = "largest-free-heap-size")]
     pub largest_free_heap_size: u32,
     #[serde(rename = "mcu-temperature")]
-    pub mcu_temperature: f64,
+    pub mcu_temperature: Celsius,
     pub systick: u64,
     #[serde(rename = "total-free-heap-size")]
     pub total_free_heap_size: u32,
@@ -212,11 +202,11 @@ pub struct SystemInfo3220 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TemperatureInfo {
     #[serde(rename = "heater-temperature")]
-    pub heater_temperature: f64, // always celsius
+    pub heater_temperature: Celsius, // always celsius
     #[serde(rename = "triac-temperature")]
-    pub triac_temperature: f64, // always celsius
+    pub triac_temperature: Celsius, // always celsius
     #[serde(rename = "water-temperature")]
-    pub water_temperature: f64, // always celsius
+    pub water_temperature: Celsius, // always celsius
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -271,33 +261,4 @@ pub enum AnovaResponseStatus {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AnovaResponsePayload {
     pub status: AnovaResponseStatus,
-}
-
-// ---------------------------------
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TemperatureDisplay {
-    pub heater_temperature: String,
-    pub triac_temperature: String,
-    pub water_temperature: String,
-}
-
-pub fn c_to_f(c: f64) -> f64 {
-    (c * 1.8) + 32.0
-}
-
-impl ApcState {
-    pub fn temperature_info_auto(&self) -> TemperatureInfo {
-        match self.job.temperature_unit {
-            TemperatureUnit::C => TemperatureInfo {
-                heater_temperature: self.temperature_info.heater_temperature,
-                triac_temperature: self.temperature_info.triac_temperature,
-                water_temperature: self.temperature_info.water_temperature,
-            },
-            TemperatureUnit::F => TemperatureInfo {
-                heater_temperature: c_to_f(self.temperature_info.heater_temperature),
-                triac_temperature: c_to_f(self.temperature_info.triac_temperature),
-                water_temperature: c_to_f(self.temperature_info.water_temperature),
-            },
-        }
-    }
 }

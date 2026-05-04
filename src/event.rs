@@ -25,8 +25,8 @@ pub enum AppEvent {
     NextDevice,
     PreviousDevice,
     UpdateDevice,
-    SetAppDevices(Vec<AnovaDevice>),
-    SetApcState(ApcStatePayload),
+    SetAppDevices(Box<Vec<AnovaDevice>>),
+    SetApcState(Box<ApcStatePayload>),
     //
     IncrementSetTemperature(f64),
     DecrementSetTemperature(f64),
@@ -53,7 +53,9 @@ impl EventHandler {
     pub fn new() -> Self {
         let (sender, receiver) = mpsc::unbounded_channel();
         let actor = EventTask::new(sender.clone());
+
         tokio::spawn(async { actor.run().await });
+
         Self { sender, receiver }
     }
 
