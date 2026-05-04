@@ -12,8 +12,8 @@ cargo build --release
 ```
 
 ## Usage
-`anova_rs` requires a personal Anova token obtained from the [Anova Oven](https://play.google.com/store/apps/details?id=com.anovaculinary.anovaoven) app. The token can be provided through:
-- A .env file, containing `ANOVA_TOKEN="anova-ey........"`. Automatically detected on launch.
+`anova_rs` requires a personal Anova token obtained from the [Anova Oven](https://play.google.com/store/apps/details?id=com.anovaculinary.anovaoven) app. The token can be provided through one of the following:
+- A .env file, containing `ANOVA_TOKEN="anova-ey........"`.
 - An environment variable `export ANOVA_TOKEN="anova-ey........"`
 - The CLI via the `--anova-token` arg.
 
@@ -29,17 +29,19 @@ Options:
 ## Supported Devices
 `anova_rs` uses the Anova APC API and currently only supports precision cooker devices. The honest reason is that I don't own a precision oven hence making development, testing and validation difficult.
 
-## License
-Copyright (c) Oscar Aspelin <oscar.aspelin@gmail.com>
-This project is licensed under the MIT license ([LICENSE] or <http://opensource.org/licenses/MIT>)
-[LICENSE]: ./LICENSE
-
 ## Current State
 This project is still in very early development so expect things to change. The priority list is as follows:
+- [x] Improve the temperature C <-> F display.
 - [ ] Bugfixes. There is a few I know of and more will probably appear.
 - [ ] Add tests. There are currently NO tests at all.
 - [ ] UI tweaks. Change some colors, make the control more ergonomic.
 - [ ] Temperature plot. A line plot of the current temperature -> target tempreature.
-- [ ] Move the APC API to a separate crate.
+- [ ] Move the APC API to a separate crate and refactor
 
+## Screenshots
 ![img](assets/screenshot.png)
+
+## License
+Copyright (c) Oscar Aspelin <oscar.aspelin@gmail.com>
+This project is licensed under the MIT license ([LICENSE] or <http://opensource.org/licenses/MIT>)
+[LICENSE]: ./LICENSE
