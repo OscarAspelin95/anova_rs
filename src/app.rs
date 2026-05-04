@@ -105,8 +105,6 @@ impl App {
                     AppEvent::DecrementSetTimer(delta) => {
                         self.device_control.decrement_timer(delta)
                     }
-
-                    _ => {}
                 },
             }
         }
@@ -131,7 +129,7 @@ impl App {
             false => ApiRequest::Start(ApcStartPayload {
                 cooker_id: device.cooker_id.clone(),
                 r#type: device.r#type.clone(),
-                target_temperature: self.device_control.set_temperature,
+                target_temperature: self.device_control.set_temperature.clone(),
                 unit: TemperatureUnit::C,
                 timer: self.device_control.set_timer,
             }),
