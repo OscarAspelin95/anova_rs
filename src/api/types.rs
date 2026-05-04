@@ -32,8 +32,9 @@ pub struct Celsius(pub f64);
 
 impl Celsius {
     pub fn new(temp: f64) -> Self {
-        // temp solution.
-        if temp < 30.0 || temp >= 90.0 {
+        // temp solution. We could return Result<Self, AnovaError>
+        // but not sure this is the way to go.
+        if !(30.0..90.0).contains(&temp) {
             panic!("start temp must be >=30.0 and <= 90. Got `{}`", temp)
         }
 
@@ -41,9 +42,9 @@ impl Celsius {
     }
 
     pub fn to_display(&self, unit: &TemperatureUnit) -> String {
-        match unit {
-            &TemperatureUnit::C => format!("{:.1} °C", self.0),
-            &TemperatureUnit::F => format!("{:.1} °F", (self.0 * 1.8) + 32.0),
+        match *unit {
+            TemperatureUnit::C => format!("{:.1} °C", self.0),
+            TemperatureUnit::F => format!("{:.1} °F", (self.0 * 1.8) + 32.0),
         }
     }
 }

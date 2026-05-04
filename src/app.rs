@@ -84,10 +84,10 @@ impl App {
                     AppEvent::PreviousDevice => self.anova_devices.previous_device(),
                     AppEvent::UpdateDevice => self.anova_devices.update_device(),
                     AppEvent::SetAppDevices(identified_devices) => {
-                        self.anova_devices.update_devices(identified_devices);
+                        self.anova_devices.update_devices(*identified_devices);
                     }
                     AppEvent::SetApcState(apc_state) => {
-                        self.anova_devices.set_apc_state(apc_state);
+                        self.anova_devices.set_apc_state(*apc_state);
                     }
                     // api requests
                     AppEvent::StartOrStop => self.send_start_or_stop_request(),
