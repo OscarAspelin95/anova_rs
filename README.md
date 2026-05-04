@@ -43,5 +43,4 @@ This project is still in very early development so expect things to change. The 
 
 ## License
 Copyright (c) Oscar Aspelin <oscar.aspelin@gmail.com>
-This project is licensed under the MIT license ([LICENSE] or <http://opensource.org/licenses/MIT>)
-[LICENSE]: ./LICENSE
+This project is licensed under the MIT license <http://opensource.org/licenses/MIT>.
