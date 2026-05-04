@@ -1,5 +1,7 @@
 use validator::Validate;
 
+use crate::api::{TemperatureUnit, c_to_f};
+
 #[derive(Debug, Validate)]
 pub struct DeviceControl {
     // not sure what the max temperature is.
@@ -34,6 +36,15 @@ impl Default for DeviceControl {
         Self {
             set_temperature: 50.0,
             set_timer: 30 * 60, // 30 minutes
+        }
+    }
+}
+
+impl DeviceControl {
+    pub fn set_temperature_auto(&self, unit: &TemperatureUnit) -> f64 {
+        match unit {
+            &TemperatureUnit::C => self.set_temperature,
+            &TemperatureUnit::F => c_to_f(self.set_temperature),
         }
     }
 }

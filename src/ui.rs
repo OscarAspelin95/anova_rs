@@ -9,8 +9,8 @@ use ratatui::{
 };
 
 use crate::api::{
-    Job, JobStatus, JobStatusState, NetworkInfo, PinInfo, SystemInfo2640, TemperatureInfo,
-    TimeDisplay,
+    ApcSet, ApcState, Job, JobStatus, JobStatusState, NetworkInfo, PinInfo, SystemInfo2640,
+    TemperatureInfo, TemperatureUnit, TimeDisplay,
 };
 use crate::app::App;
 
@@ -158,31 +158,37 @@ impl App {
         .render(area_h2, buf);
     }
 
-    fn render_control_temperature(
-        &self,
-        temp: &TemperatureInfo,
-        temp_area: Rect,
-        buf: &mut Buffer,
-    ) {
+    fn render_control_temperature(&self, apc_state: &ApcState, temp_area: Rect, buf: &mut Buffer) {
+        let temp = apc_state.temperature_info_auto();
+
         let temp_lines = vec![
             Line::from(vec![
                 Span::styled("water   ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!("{:.1}°", temp.water_temperature),
+                    format!(
+                        "{:.1}° {}",
+                        temp.water_temperature, apc_state.job.temperature_unit
+                    ),
                     Style::default().fg(Color::Blue).bold(),
                 ),
             ]),
             Line::from(vec![
                 Span::styled("heater  ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!("{:.1}°", temp.heater_temperature),
+                    format!(
+                        "{:.1}° {}",
+                        temp.heater_temperature, apc_state.job.temperature_unit
+                    ),
                     Style::default().fg(Color::Red),
                 ),
             ]),
             Line::from(vec![
                 Span::styled("triac   ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!("{:.1}°", temp.triac_temperature),
+                    format!(
+                        "{:.1}° {}",
+                        temp.triac_temperature, apc_state.job.temperature_unit
+                    ),
                     Style::default().fg(Color::Gray),
                 ),
             ]),
@@ -294,7 +300,11 @@ impl App {
             Line::from(vec![
                 Span::styled("target  ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!("{:.1}° {:?}", job.target_temperature, job.temperature_unit),
+                    format!(
+                        "{:.1}° {:?}",
+                        job.target_temperature_auto(),
+                        job.temperature_unit
+                    ),
                     Style::default().fg(Color::Yellow),
                 ),
             ]),
@@ -439,12 +449,16 @@ impl App {
             .render(area, buf);
     }
 
-    fn render_set_values(&self, area: Rect, buf: &mut Buffer) {
+    fn render_set_values(&self, unit: &TemperatureUnit, area: Rect, buf: &mut Buffer) {
         let ctrl_lines = vec![
             Line::from(vec![
                 Span::styled("set temp  ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    format!("{:.1}°", self.device_control.set_temperature),
+                    format!(
+                        "{:.1}° {}",
+                        self.device_control.set_temperature_auto(unit),
+                        unit
+                    ),
                     Style::default().fg(Color::Yellow).bold(),
                 ),
             ]),
@@ -520,12 +534,12 @@ impl App {
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(right_panels);
 
         // render body.
-        self.render_control_temperature(&apc.state.temperature_info, temp_panel, buf);
+        self.render_control_temperature(&apc.state, temp_panel, buf);
         self.render_control_job(&apc.state.job, &apc.state.job_status, job_panel, buf);
         self.render_network_page(&apc.state.network_info, network_panel, buf);
         self.render_pin_page(&apc.state.pin_info, pin_panel, buf);
         self.render_sys_info(&apc.state.system_info_2640, sysinfo_area, buf);
-        self.render_set_values(set_panel, buf);
+        self.render_set_values(&apc.state.job.temperature_unit, set_panel, buf);
         self.render_control_help(help_area_1, help_area_2, buf);
     }
 }

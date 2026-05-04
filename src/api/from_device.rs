@@ -117,6 +117,15 @@ pub struct Job {
     pub temperature_unit: TemperatureUnit,
 }
 
+impl Job {
+    pub fn target_temperature_auto(&self) -> f64 {
+        match self.temperature_unit {
+            TemperatureUnit::C => self.target_temperature,
+            TemperatureUnit::F => c_to_f(self.target_temperature),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JobStatus {
     #[serde(rename = "cook-time-remaining")]
@@ -203,11 +212,11 @@ pub struct SystemInfo3220 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TemperatureInfo {
     #[serde(rename = "heater-temperature")]
-    pub heater_temperature: f64,
+    pub heater_temperature: f64, // always celsius
     #[serde(rename = "triac-temperature")]
-    pub triac_temperature: f64,
+    pub triac_temperature: f64, // always celsius
     #[serde(rename = "water-temperature")]
-    pub water_temperature: f64,
+    pub water_temperature: f64, // always celsius
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -262,4 +271,33 @@ pub enum AnovaResponseStatus {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AnovaResponsePayload {
     pub status: AnovaResponseStatus,
+}
+
+// ---------------------------------
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TemperatureDisplay {
+    pub heater_temperature: String,
+    pub triac_temperature: String,
+    pub water_temperature: String,
+}
+
+pub fn c_to_f(c: f64) -> f64 {
+    (c * 1.8) + 32.0
+}
+
+impl ApcState {
+    pub fn temperature_info_auto(&self) -> TemperatureInfo {
+        match self.job.temperature_unit {
+            TemperatureUnit::C => TemperatureInfo {
+                heater_temperature: self.temperature_info.heater_temperature,
+                triac_temperature: self.temperature_info.triac_temperature,
+                water_temperature: self.temperature_info.water_temperature,
+            },
+            TemperatureUnit::F => TemperatureInfo {
+                heater_temperature: c_to_f(self.temperature_info.heater_temperature),
+                triac_temperature: c_to_f(self.temperature_info.triac_temperature),
+                water_temperature: c_to_f(self.temperature_info.water_temperature),
+            },
+        }
+    }
 }
