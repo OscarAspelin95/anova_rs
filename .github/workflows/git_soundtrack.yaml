@@ -1,0 +1,92 @@
+name: Save Spotify Genre For Commit And Update Bagde
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-update-db:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Rust binary from another repo
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: "OscarAspelin95/git_soundtrack"
+          latest: true
+          fileName: "action_rs"
+          token: ${{ secrets.RELEASE_DOWNLOAD_TOKEN }}
+
+      - name: Make executable
+        run: chmod +x ./action_rs
+
+      - name: Run binary
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RSPOTIFY_CLIENT_ID: ${{ secrets.RSPOTIFY_CLIENT_ID }}
+          RSPOTIFY_CLIENT_SECRET: ${{ secrets.RSPOTIFY_CLIENT_SECRET }}
+          RSPOTIFY_REDIRECT_URI: ${{ secrets.RSPOTIFY_REDIRECT_URI }}
+          SPOTIFY_CACHE: ${{ secrets.SPOTIFY_CACHE }}
+
+        run: ./action_rs
+
+  run-update-badge:
+    runs-on: ubuntu-latest
+    needs: run-update-db
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download Rust binary from another repo
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: "OscarAspelin95/git_soundtrack"
+          latest: true
+          fileName: "badge_rs"
+          token: ${{ secrets.RELEASE_DOWNLOAD_TOKEN }}
+
+      - name: Make executable
+        run: chmod +x ./badge_rs
+
+      - name: Run binary
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RSPOTIFY_CLIENT_ID: ${{ secrets.RSPOTIFY_CLIENT_ID }}
+          RSPOTIFY_CLIENT_SECRET: ${{ secrets.RSPOTIFY_CLIENT_SECRET }}
+          RSPOTIFY_REDIRECT_URI: ${{ secrets.RSPOTIFY_REDIRECT_URI }}
+          SPOTIFY_CACHE: ${{ secrets.SPOTIFY_CACHE }}
+
+        run: |
+          OUTPUT=$(./badge_rs --owner $GITHUB_REPOSITORY_OWNER --repository $GITHUB_REPOSITORY --branch $GITHUB_REF_NAME)
+          echo "output: $OUTPUT"
+          if [ $? -eq 0 ] && [ -n "$OUTPUT" ]; then
+            python3 -c "
+          import re, sys
+          content = open('README.md').read()
+          new_content = re.sub(
+              r'<!-- GENRE_BADGES_START -->.*?<!-- GENRE_BADGES_END -->',
+              '<!-- GENRE_BADGES_START -->\n' + sys.argv[1] + '\n<!-- GENRE_BADGES_END -->',
+              content,
+              flags=re.DOTALL
+          )
+          open('README.md', 'w').write(new_content)
+          " "$OUTPUT"
+          fi
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "chore: update genre badges [skip ci]"
+          git push
