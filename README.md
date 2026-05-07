@@ -43,7 +43,7 @@ This project is still in very early development so expect things to change. The 
 
 # Git Soundtrack
 <!-- GENRE_BADGES_START -->
-
+![country blues](https://img.shields.io/badge/country%20blues-100%25-blue)
 <!-- GENRE_BADGES_END -->
 
 ## License
