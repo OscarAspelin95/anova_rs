@@ -41,6 +41,11 @@ This project is still in very early development so expect things to change. The 
 ## Screenshots
 ![img](assets/screenshot.png)
 
+# Git Soundtrack
+<!-- GENRE_BADGES_START -->
+![country blues](https://img.shields.io/badge/country%20blues-100%25-blue)
+<!-- GENRE_BADGES_END -->
+
 ## License
 Copyright (c) Oscar Aspelin <oscar.aspelin@gmail.com>
 This project is licensed under the MIT license <http://opensource.org/licenses/MIT>.
