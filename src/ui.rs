@@ -11,10 +11,12 @@ use ratatui::{
     widgets::{Block, BorderType, Paragraph, Widget},
 };
 
-use crate::api::{ApcState, JobStatusState, TimeDisplay};
+use crate::api::TimeDisplay;
+use crate::api::apc::events::apc_state::{ApcState, JobStatusState};
+use crate::api::apc::events::apc_wifi_list::AnovaDevice;
 use crate::app::App;
 
-use crate::types::{AnovaDevice, PageTab};
+use crate::types::PageTab;
 use ratatui::widgets::{List, ListItem, Tabs};
 
 impl Widget for &App {

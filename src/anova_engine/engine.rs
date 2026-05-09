@@ -8,15 +8,18 @@ use tokio_tungstenite::tungstenite::Message;
 use tracing::instrument;
 use tracing::{debug, error, info, warn};
 
-use crate::anova_engine::schema::device::AnovaCommandType;
-use crate::api::{AnovaResponsePayload, ApcStatePayload, Cooker, UserStatePayload};
+use crate::api::apc::events::apc_state::ApcStatePayload;
+use crate::api::apc::events::apc_wifi_list::AnovaDevice;
+use crate::api::apc::events::apc_wifi_version::Cooker;
+use crate::api::apc::events::response::AnovaResponsePayload;
+use crate::api::apc::events::user_state::UserStatePayload;
+use crate::api::apc::types::AnovaCommandType;
 use crate::api::{ApcSet, ApcStart, ApcStop, ApiRequest};
 use crate::event::{AppEvent, Event};
 
 use super::errors::AnovaError;
 use super::schema::device::AnovaCommand;
 use super::types::Anova;
-use crate::types::AnovaDevice;
 
 /// Main Anova driver. Triggers a background task for continuously:
 /// * fetching data from the API.
@@ -132,6 +135,7 @@ pub async fn start(
                          Ok(v) => v,
                          Err(e) => {error!("{e}"); continue},
                         };
+
 
                     debug!("{} - {:?}", c, anova_response);
                 }

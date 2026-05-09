@@ -1,53 +1,7 @@
-//! incoming raw API payload from the device.
-//! later, we should move to one script/mod per anova command.
-
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
 use crate::api::{Celsius, TemperatureUnit};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OtaInfo {
-    pub available: bool,
-    pub description: String,
-    pub required: bool,
-    pub url: String,
-    pub version: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Cooker {
-    #[serde(rename = "cookerId")]
-    pub cooker_id: String,
-    pub ota: OtaInfo,
-    #[serde(rename = "type")]
-    pub r#type: String,
-    pub version: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Subscription {
-    #[serde(rename = "hasValidSubscription")]
-    pub has_valid_subscription: bool,
-    #[serde(rename = "isLegacyAccount")]
-    pub is_legacy_account: bool,
-    #[serde(rename = "renewalPeriod")]
-    pub renewal_period: String,
-    #[serde(rename = "productId")]
-    pub product_id: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserStatePayload {
-    #[serde(rename = "isConnectedToAlexa")]
-    pub is_connected_to_alexa: bool,
-    #[serde(rename = "isConnectedToGoogleHome")]
-    pub is_connected_to_google_home: bool,
-    #[serde(rename = "sousVideSubscription")]
-    pub sous_vide_subscription: Subscription,
-    #[serde(rename = "ovenSubscription")]
-    pub oven_subscription: Subscription,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AudioControl {
@@ -245,20 +199,4 @@ pub struct ApcStatePayload {
     #[serde(rename = "type")]
     pub cooker_type: String,
     pub state: ApcState,
-}
-
-// ------------------------------
-#[derive(Debug, EnumString, Serialize, Deserialize)]
-pub enum AnovaResponseStatus {
-    #[strum(to_string = "ok")]
-    #[serde(rename = "ok")]
-    OK,
-    #[serde(rename = "error")]
-    #[strum(to_string = "error")]
-    ERROR,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AnovaResponsePayload {
-    pub status: AnovaResponseStatus,
 }

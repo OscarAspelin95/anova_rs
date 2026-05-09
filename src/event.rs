@@ -4,8 +4,7 @@ use futures::{FutureExt, StreamExt};
 use std::time::Duration;
 use tokio::sync::mpsc;
 
-use crate::api::ApcStatePayload;
-use crate::types::AnovaDevice;
+use crate::api::apc::events::{apc_state::ApcStatePayload, apc_wifi_list::AnovaDevice};
 
 const TICK_FPS: f64 = 30.0;
 

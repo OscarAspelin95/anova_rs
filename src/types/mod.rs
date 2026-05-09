@@ -5,5 +5,5 @@ pub mod tab;
 
 pub use common::FixedValueSet;
 pub use control::DeviceControl;
-pub use device::{AnovaDevice, Devices};
+pub use device::Devices;
 pub use tab::PageTab;

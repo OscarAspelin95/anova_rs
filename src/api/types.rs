@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use strum::Display;
 
-/// for ApcState specifically.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Display)]
 pub enum TemperatureUnit {
     #[serde(rename = "C")]
@@ -26,7 +25,6 @@ impl<T: Into<u64> + Copy> TimeDisplay for T {
     }
 }
 
-// ---
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Celsius(pub f64);
 
