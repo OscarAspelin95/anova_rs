@@ -36,7 +36,8 @@ This project is still in very early development so expect things to change. The 
 - [ ] Add tests. There are currently NO tests at all.
 - [ ] UI tweaks. Change some colors, make the control more ergonomic.
 - [ ] Temperature plot. A line plot of the current temperature -> target tempreature.
-- [ ] Move the APC API to a separate crate and refactor
+- [x] Refactor API
+- [ ] Move API to separate crate?
 
 ## Screenshots
 ![img](assets/screenshot.png)
