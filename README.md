@@ -43,7 +43,7 @@ This project is still in very early development so expect things to change. The 
 
 # Git Soundtrack
 <!-- GENRE_BADGES_START -->
-![vaporwave](https://img.shields.io/badge/vaporwave-50%25-blue) ![country blues](https://img.shields.io/badge/country%20blues-50%25-blue)
+![country blues](https://img.shields.io/badge/country%20blues-33%25-blue) ![vaporwave](https://img.shields.io/badge/vaporwave-33%25-blue) ![synthwave](https://img.shields.io/badge/synthwave-33%25-blue)
 <!-- GENRE_BADGES_END -->
 
 ## License
