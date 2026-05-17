@@ -1,7 +1,4 @@
-//! we can potentially put a .to_component() method
-//! on ApcState to simplify some of the component generation.
-
-use ratatui::layout::{Alignment, Constraint, Direction, Layout};
+use ratatui::layout::{Alignment, Constraint, Layout};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 use ratatui::{
@@ -16,120 +13,8 @@ use crate::api::apc::events::apc_state::{ApcState, JobStatusState};
 use crate::api::apc::events::apc_wifi_list::AnovaDevice;
 use crate::app::App;
 
-use crate::types::PageTab;
-use ratatui::widgets::{List, ListItem, Tabs};
-
-impl Widget for &App {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Length(3), Constraint::Fill(1)])
-            .split(area);
-
-        let tabs = Tabs::new(
-            self.page_tabs
-                .values()
-                .iter()
-                .map(|t: &PageTab| t.to_string()),
-        )
-        .select(self.page_tabs.selected().expect("must be selected"))
-        .block(Block::bordered().title("Anova UI"))
-        .highlight_style(Style::default().fg(Color::Cyan).bold())
-        .divider("|");
-
-        tabs.render(chunks[0], buf);
-
-        match self.page_tabs.current() {
-            Some(&PageTab::Device) => self.render_device_page(chunks[1], buf),
-            Some(&PageTab::Control) => self.render_control_page(chunks[1], buf),
-            _ => {}
-        }
-    }
-}
-
 impl App {
-    /// Break this into better logic.
-    fn render_device_page(&self, area: Rect, buf: &mut Buffer) {
-        // split layout
-        let [list_area, help_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(1)]).areas(area);
-
-        // show devices
-        let items: Vec<ListItem> = self
-            .anova_devices
-            .devices
-            .iter()
-            .enumerate()
-            .map(|(i, d)| {
-                // default
-                let mut style = Style::default().fg(Color::Cyan);
-
-                // highlighted
-                if Some(i) == self.anova_devices.next_index {
-                    style = Style::default().fg(Color::Yellow).bold();
-                }
-
-                // active
-                let t = match Some(i) == self.anova_devices.current_index {
-                    true => "● ",
-                    false => "○ ",
-                };
-
-                ListItem::new(format!(
-                    "{}{} | {} | {} | {}",
-                    t, d.cooker_id, d.name, d.r#type, d.paired_at
-                ))
-                .style(style)
-            })
-            .collect();
-
-        if !items.is_empty() {
-            List::new(items)
-                .block(
-                    Block::bordered()
-                        .border_type(BorderType::Rounded)
-                        .title("Devices"),
-                )
-                .highlight_symbol("> ")
-                .render(list_area, buf);
-        } else {
-            Paragraph::new("No devices found (yet)")
-                .alignment(Alignment::Center)
-                .red()
-                .render(list_area, buf);
-        }
-
-        // show help text
-        let divider = " | ".dark_gray();
-
-        Paragraph::new(Line::from(vec![
-            "↑/↓".magenta(),
-            " navigate ".into(),
-            divider.clone(),
-            "↵".magenta(),
-            " select ".into(),
-            divider.clone(),
-            "↹ ".magenta(),
-            " change view ".into(),
-        ]))
-        .alignment(Alignment::Center)
-        .render(help_area, buf);
-    }
-}
-
-/// There are some bugs we need to fix:
-/// * Switching C/F should convert the float as well.
-/// * Fix progress bar when done cooking (and it starts counting up).
-impl App {
-    fn render_control_no_device_connected(&self, area: Rect, buf: &mut Buffer) {
-        Paragraph::new("No device connected")
-            .block(Block::bordered().border_type(BorderType::Rounded))
-            .fg(Color::DarkGray)
-            .centered()
-            .render(area, buf);
-    }
-
-    fn render_control_help(&self, area_h1: Rect, area_h2: Rect, buf: &mut Buffer) {
+    pub fn render_control_help(&self, area_h1: Rect, area_h2: Rect, buf: &mut Buffer) {
         Paragraph::new(Line::from(vec![
             "↹ ".magenta(),
             "change view".into(),
@@ -160,7 +45,12 @@ impl App {
         .render(area_h2, buf);
     }
 
-    fn render_control_temperature(&self, apc_state: &ApcState, temp_area: Rect, buf: &mut Buffer) {
+    pub fn render_control_temperature(
+        &self,
+        apc_state: &ApcState,
+        temp_area: Rect,
+        buf: &mut Buffer,
+    ) {
         let temp_lines = vec![
             Line::from(vec![
                 Span::styled("water   ", Style::default().fg(Color::DarkGray)),
@@ -207,7 +97,7 @@ impl App {
             .render(temp_area, buf);
     }
 
-    fn render_control_header(&self, device: &AnovaDevice, header_area: Rect, buf: &mut Buffer) {
+    pub fn render_control_header(&self, device: &AnovaDevice, header_area: Rect, buf: &mut Buffer) {
         let divider = Span::styled(" │ ", Style::default().fg(Color::DarkGray));
 
         let connection_span = if device.is_connected() {
@@ -245,7 +135,7 @@ impl App {
             .render(header_area, buf);
     }
 
-    fn render_control_job(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
+    pub fn render_control_job(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
         let job = &apc_state.job;
         let job_status = &apc_state.job_status;
 
@@ -344,7 +234,7 @@ impl App {
             .render(area, buf);
     }
 
-    fn render_network_page(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
+    pub fn render_network_page(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
         let net = &apc_state.network_info;
 
         let net_lines = vec![
@@ -376,7 +266,7 @@ impl App {
             .render(area, buf);
     }
 
-    fn render_pin_page(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
+    pub fn render_pin_page(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
         let pins = &apc_state.pin_info;
 
         let ok = Style::default().fg(Color::Green);
@@ -414,7 +304,7 @@ impl App {
             .render(area, buf);
     }
 
-    fn render_sys_info(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
+    pub fn render_sys_info(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
         let sys = &apc_state.system_info_2640;
 
         let divider = Span::styled(" │ ", Style::default().fg(Color::DarkGray));
@@ -455,7 +345,7 @@ impl App {
             .render(area, buf);
     }
 
-    fn render_set_values(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
+    pub fn render_set_values(&self, apc_state: &ApcState, area: Rect, buf: &mut Buffer) {
         let ctrl_lines = vec![
             Line::from(vec![
                 Span::styled("set temp  ", Style::default().fg(Color::DarkGray)),
@@ -489,7 +379,7 @@ impl App {
     }
 
     /// Main renderer.
-    fn render_control_page(&self, area: Rect, buf: &mut Buffer) {
+    pub fn render_control_page(&self, area: Rect, buf: &mut Buffer) {
         // main layout
         let [
             header_area,

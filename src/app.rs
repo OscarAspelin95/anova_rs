@@ -233,7 +233,8 @@ impl App {
         match self.page_tabs.current() {
             Some(PageTab::Device) => self.handle_device_events(key_event),
             Some(PageTab::Control) => self.handle_control_events(key_event),
-            _ => {}
+            Some(PageTab::Plot) => {}
+            None => {}
         }
 
         Ok(())
