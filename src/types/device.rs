@@ -106,6 +106,11 @@ impl Devices {
             .iter_mut()
             .find(|d| d.cooker_id == apc_state.cooker_id)
         {
+            // Consider rounding/converting to usize.
+            // Consider having some update frequency?
+            device
+                .temperature_values
+                .sat_push_back(apc_state.state.temperature_info.water_temperature.0);
             device.apc_state = Some(apc_state);
         }
     }

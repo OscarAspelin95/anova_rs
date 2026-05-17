@@ -15,6 +15,7 @@ pub mod args;
 pub mod event;
 pub mod types;
 pub mod ui;
+pub mod utils;
 
 fn logging_setup(log_file: &Path) {
     if let Some(parent) = log_file.parent() {
