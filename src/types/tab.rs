@@ -4,5 +4,5 @@ use strum::{Display, EnumIter};
 pub enum PageTab {
     Device,
     Control,
-    Plot,
+    Chart,
 }
