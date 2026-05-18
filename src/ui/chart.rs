@@ -19,7 +19,7 @@ use crate::app::App;
 use crate::utils::{RestrictedVecDeque, round_with_margin};
 
 impl App {
-    pub fn render_plot_help(&self, area: Rect, buf: &mut Buffer) {
+    pub fn render_chart_help(&self, area: Rect, buf: &mut Buffer) {
         Paragraph::new(Line::from(vec![
             "↹ ".magenta(),
             "change view".into(),
@@ -31,7 +31,7 @@ impl App {
         .render(area, buf);
     }
 
-    pub fn render_plot_chart(
+    pub fn render_charts(
         &self,
         temperature_values: &RestrictedVecDeque<Celsius, 100>,
         apc_state: &ApcStatePayload,
@@ -143,7 +143,7 @@ impl App {
         chart.render(area, buf);
     }
 
-    pub fn render_plot_page(&self, area: Rect, buf: &mut Buffer) {
+    pub fn render_chart_page(&self, area: Rect, buf: &mut Buffer) {
         let device = match self.anova_devices.current_device() {
             None => {
                 self.render_unavailable("no data (device not connected)", area, buf);
@@ -163,7 +163,7 @@ impl App {
         let [plot_area, help_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Length(1)]).areas(area);
 
-        self.render_plot_help(help_area, buf);
-        self.render_plot_chart(&device.temperature_values, apc_state, plot_area, buf);
+        self.render_chart_help(help_area, buf);
+        self.render_charts(&device.temperature_values, apc_state, plot_area, buf);
     }
 }

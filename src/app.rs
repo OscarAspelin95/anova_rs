@@ -41,9 +41,6 @@ impl Default for App {
     }
 }
 
-/// We need to:
-/// * Implement the wss api request for start/set/end.
-/// * Make the control UI nice, should be able to choose temp, etc.
 impl App {
     pub fn new() -> Self {
         Self::default()
@@ -61,7 +58,6 @@ impl App {
         // We can probably move this somewhere else
         anova_engine::engine::start(self.events.sender.clone(), rx, anova_token).await?;
 
-        //
         while self.running {
             terminal.draw(|frame| frame.render_widget(&self, frame.area()))?;
 
@@ -213,20 +209,27 @@ impl App {
             KeyCode::Char('T') | KeyCode::Char('t') => {
                 self.events.send(AppEvent::SwitchTemperatureUnit)
             }
-            KeyCode::Char('+') => self.events.send(AppEvent::IncrementSetTemperature(0.5)),
-            KeyCode::Char('-') => self.events.send(AppEvent::DecrementSetTemperature(0.5)),
-            KeyCode::Char('=') => self.events.send(AppEvent::IncrementSetTemperature(2.0)),
-            KeyCode::Char('_') => self.events.send(AppEvent::DecrementSetTemperature(2.0)),
-            KeyCode::Char(']') => self.events.send(AppEvent::IncrementSetTimer(1)),
-            KeyCode::Char('[') => self.events.send(AppEvent::DecrementSetTimer(1)),
-            KeyCode::Char('}') => self.events.send(AppEvent::IncrementSetTimer(60)),
-            KeyCode::Char('{') => self.events.send(AppEvent::DecrementSetTimer(60)),
-
+            KeyCode::Up => self.events.send(AppEvent::IncrementSetTemperature(0.5)),
+            KeyCode::Down => self.events.send(AppEvent::DecrementSetTemperature(0.5)),
+            KeyCode::Right => {
+                let time_delta = match key_event.modifiers {
+                    KeyModifiers::CONTROL => 1,
+                    _ => 60,
+                };
+                self.events.send(AppEvent::IncrementSetTimer(time_delta))
+            }
+            KeyCode::Left => {
+                let time_delta = match key_event.modifiers {
+                    KeyModifiers::CONTROL => 1,
+                    _ => 60,
+                };
+                self.events.send(AppEvent::DecrementSetTimer(time_delta))
+            }
             _ => {}
         }
     }
 
-    fn handle_plot_events(&mut self, key_event: KeyEvent) {
+    fn handle_chart_events(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('T') | KeyCode::Char('t') => {
                 self.events.send(AppEvent::SwitchTemperatureUnit)
@@ -241,7 +244,7 @@ impl App {
         match self.page_tabs.current() {
             Some(PageTab::Device) => self.handle_device_events(key_event),
             Some(PageTab::Control) => self.handle_control_events(key_event),
-            Some(PageTab::Plot) => self.handle_plot_events(key_event),
+            Some(PageTab::Chart) => self.handle_chart_events(key_event),
             None => {}
         }
 

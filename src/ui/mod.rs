@@ -1,8 +1,8 @@
 //! we can potentially put a .to_component() method
 //! on ApcState to simplify some of the component generation.
+mod chart;
 mod control;
 mod device;
-mod plot;
 
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::Style;
@@ -41,7 +41,7 @@ impl Widget for &App {
         match self.page_tabs.current() {
             Some(&PageTab::Device) => self.render_device_page(chunks[1], buf),
             Some(&PageTab::Control) => self.render_control_page(chunks[1], buf),
-            Some(&PageTab::Plot) => self.render_plot_page(chunks[1], buf),
+            Some(&PageTab::Chart) => self.render_chart_page(chunks[1], buf),
             _ => {}
         }
     }

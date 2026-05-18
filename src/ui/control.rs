@@ -29,17 +29,18 @@ impl App {
         .render(area_h1, buf);
 
         Paragraph::new(Line::from(vec![
-            "+/-".cyan(),
-            " temp ↑↓".into(),
+            "↑/↓".cyan(),
+            " temp".into(),
             " │ ".dark_gray(),
-            "=/_".cyan(),
-            " temp ↑↑↓↓".into(),
+            "←/→".cyan(),
+            " HH:".dark_gray(),
+            "MM:".into(),
+            "SS".dark_gray(),
             " │ ".dark_gray(),
-            "[/]".cyan(),
-            " timer ↑↓".into(),
-            " │ ".dark_gray(),
-            "{/}".cyan(),
-            " timer ↑↑↓↓".into(),
+            "ctrl + ←/→".cyan(),
+            " HH:".dark_gray(),
+            "MM:".dark_gray(),
+            "SS".into(),
         ]))
         .alignment(Alignment::Center)
         .render(area_h2, buf);
