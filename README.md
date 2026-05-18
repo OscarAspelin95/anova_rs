@@ -33,9 +33,9 @@ Options:
 This project is still in very early development so expect things to change. The priority list is as follows:
 - [x] Improve the temperature C <-> F display.
 - [ ] Bugfixes. There is a few I know of and more will probably appear.
-- [ ] Add tests. There are currently NO tests at all.
+- [ ] Add more tests. There are currently very few tests.
 - [ ] UI tweaks. Change some colors, make the control more ergonomic.
-- [ ] Temperature plot. A line plot of the current temperature -> target tempreature.
+- [ ] Improve APC_PAYLOAD struct to handle temperature conversion more ergonomically.
 - [x] Refactor API
 - [ ] Move API to separate crate?
 
