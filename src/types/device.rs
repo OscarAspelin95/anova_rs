@@ -100,12 +100,18 @@ impl Devices {
         self.next_index = Some(0);
     }
 
+    /// This is not ideal because of the tight coupling between apc_state and temperature values.
+    /// Should probably break into separate functions.
     pub fn set_apc_state(&mut self, apc_state: ApcStatePayload) {
         if let Some(device) = self
             .devices
             .iter_mut()
             .find(|d| d.cooker_id == apc_state.cooker_id)
         {
+            // is clone acceptable?
+            device
+                .temperature_values
+                .sat_push_back(apc_state.state.temperature_info.water_temperature.clone());
             device.apc_state = Some(apc_state);
         }
     }

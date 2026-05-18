@@ -1,3 +1,5 @@
+use crate::{api::Celsius, utils::RestrictedVecDeque};
+
 use super::apc_state::ApcStatePayload;
 use serde::{Deserialize, Serialize};
 
@@ -11,4 +13,6 @@ pub struct AnovaDevice {
     pub paired_at: String,
     // not sure about this
     pub apc_state: Option<ApcStatePayload>,
+    #[serde(default = "RestrictedVecDeque::new")]
+    pub temperature_values: RestrictedVecDeque<Celsius, 100>,
 }

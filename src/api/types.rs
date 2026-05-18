@@ -9,6 +9,12 @@ pub enum TemperatureUnit {
     F, // farenheit
 }
 
+impl TemperatureUnit {
+    pub fn to_display(&self) -> String {
+        format!("°{}", self)
+    }
+}
+
 pub trait TimeDisplay {
     fn to_display(&self) -> String;
 }
@@ -39,11 +45,15 @@ impl Celsius {
         Self(temp)
     }
 
-    pub fn to_display(&self, unit: &TemperatureUnit) -> String {
-        match *unit {
-            TemperatureUnit::C => format!("{:.1} °C", self.0),
-            TemperatureUnit::F => format!("{:.1} °F", (self.0 * 1.8) + 32.0),
+    pub fn to_f64(&self, unit: &TemperatureUnit) -> f64 {
+        match unit {
+            TemperatureUnit::C => self.0,
+            TemperatureUnit::F => (self.0 * 1.8) + 32.0,
         }
+    }
+
+    pub fn to_display(&self, unit: &TemperatureUnit) -> String {
+        format!("{:.1} °{}", self.to_f64(unit), unit)
     }
 }
 
