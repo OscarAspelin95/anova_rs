@@ -38,3 +38,13 @@ impl<T, const S: usize> RestrictedVecDeque<T, S> {
         self.v.push_back(v);
     }
 }
+
+#[inline]
+pub fn round_f64(t: f64) -> f64 {
+    t as usize as f64
+}
+
+#[inline]
+pub fn round_with_margin(t: f64, margin: f64) -> f64 {
+    round_f64(t * margin)
+}

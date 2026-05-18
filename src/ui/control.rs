@@ -399,7 +399,7 @@ impl App {
         // early break if device does not exist.
         let device = match self.anova_devices.current_device() {
             None => {
-                self.render_control_no_device_connected(header_area, buf);
+                self.render_unavailable("no device connected", header_area, buf);
                 return;
             }
             Some(device) => device,

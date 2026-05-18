@@ -100,6 +100,8 @@ impl Devices {
         self.next_index = Some(0);
     }
 
+    /// This is not ideal because of the tight coupling between apc_state and temperature values.
+    /// Should probably break into separate functions.
     pub fn set_apc_state(&mut self, apc_state: ApcStatePayload) {
         if let Some(device) = self
             .devices

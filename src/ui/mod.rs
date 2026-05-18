@@ -48,8 +48,9 @@ impl Widget for &App {
 }
 
 impl App {
-    fn render_control_no_device_connected(&self, area: Rect, buf: &mut Buffer) {
-        Paragraph::new("No device connected")
+    /// Rework this to accept a generic paragraph text.
+    fn render_unavailable(&self, text: &str, area: Rect, buf: &mut Buffer) {
+        Paragraph::new(text)
             .block(Block::bordered().border_type(BorderType::Rounded))
             .fg(Color::DarkGray)
             .centered()
