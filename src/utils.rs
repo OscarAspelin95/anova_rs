@@ -1,6 +1,5 @@
-use std::collections::VecDeque;
-
 use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RestrictedVecDeque<T: Sized, const S: usize> {
@@ -22,6 +21,10 @@ impl<T, const S: usize> RestrictedVecDeque<T, S> {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.v.len()
+    }
+
     pub fn is_empty(&self) -> bool {
         self.v.is_empty()
     }
@@ -40,11 +43,43 @@ impl<T, const S: usize> RestrictedVecDeque<T, S> {
 }
 
 #[inline]
-pub fn round_f64(t: f64) -> f64 {
-    t as usize as f64
+pub fn round_with_margin(t: f64, margin: f64) -> f64 {
+    (t * margin).ceil()
 }
 
-#[inline]
-pub fn round_with_margin(t: f64, margin: f64) -> f64 {
-    round_f64(t * margin)
+#[cfg(test)]
+mod test {
+    use super::*;
+    use rstest::*;
+
+    #[test]
+    fn test_sat_push_back() {
+        let mut values: RestrictedVecDeque<f64, 3> = RestrictedVecDeque::new();
+
+        assert!(values.is_empty());
+        assert_eq!(values.capacity(), 3);
+
+        values.sat_push_back(1.0);
+        assert!(!values.is_empty());
+        values.sat_push_back(2.0);
+        values.sat_push_back(3.0);
+
+        // [1.0, 2.0, 3.0]
+        assert_eq!(values.len(), 3);
+
+        // [2.0, 3.0, 4.0]
+        values.sat_push_back(4.0);
+        assert_eq!(values.len(), 3);
+
+        let vec = values.v.iter().collect::<Vec<_>>();
+        assert!(matches!(&vec[..], &[2.0, 3.0, 4.0]));
+    }
+
+    #[rstest]
+    #[case(30.0, 1.1, 33.0)]
+    #[case(35.0, 1.2, 42.0)]
+    #[case(41.0, 1.1, 46.0)]
+    fn test_round_with_margin(#[case] input: f64, #[case] margin: f64, #[case] expected: f64) {
+        assert_eq!(round_with_margin(input, margin), expected);
+    }
 }

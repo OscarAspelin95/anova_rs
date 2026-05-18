@@ -12,7 +12,7 @@ use ratatui::{
 use ratatui::widgets::{Axis, Chart, Dataset, GraphType, LegendPosition};
 
 use crate::app::App;
-use crate::utils::{round_f64, round_with_margin};
+use crate::utils::round_with_margin;
 
 /// Pass temperature measurements here.
 impl App {
@@ -39,7 +39,7 @@ impl App {
             .v
             .iter()
             .enumerate()
-            .map(|(i, v)| (i as f64, round_f64(*v)))
+            .map(|(i, v)| (i as f64, v.ceil()))
             .collect();
 
         // Only celsius for now.
@@ -83,8 +83,6 @@ impl App {
                 Axis::default()
                     .title("Temperature")
                     .style(Style::default().gray())
-                    // Must catch edge case where water temp has been larger
-                    // than current target temp (e.g., if owering target temp).
                     .bounds([0.0, y_max])
                     .labels(["0".bold(), y_max.bold()]),
             )
