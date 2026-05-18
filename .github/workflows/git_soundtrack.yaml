@@ -1,6 +1,8 @@
 name: Save Spotify Genre For Commit And Update Bagde
 on:
   push:
+    branches:
+      - "**"
   workflow_dispatch:
 
 permissions:
