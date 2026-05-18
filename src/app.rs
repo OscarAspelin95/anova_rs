@@ -209,7 +209,6 @@ impl App {
 
     fn handle_control_events(&mut self, key_event: KeyEvent) {
         match key_event.code {
-            // for now, mock to make sure it works
             KeyCode::Enter => self.events.send(AppEvent::StartOrStop),
             KeyCode::Char('T') | KeyCode::Char('t') => {
                 self.events.send(AppEvent::SwitchTemperatureUnit)
@@ -227,13 +226,22 @@ impl App {
         }
     }
 
+    fn handle_plot_events(&mut self, key_event: KeyEvent) {
+        match key_event.code {
+            KeyCode::Char('T') | KeyCode::Char('t') => {
+                self.events.send(AppEvent::SwitchTemperatureUnit)
+            }
+            _ => {}
+        }
+    }
+
     pub fn handle_key_events(&mut self, key_event: KeyEvent) -> color_eyre::Result<()> {
         self.handle_global_events(key_event);
 
         match self.page_tabs.current() {
             Some(PageTab::Device) => self.handle_device_events(key_event),
             Some(PageTab::Control) => self.handle_control_events(key_event),
-            Some(PageTab::Plot) => {}
+            Some(PageTab::Plot) => self.handle_plot_events(key_event),
             None => {}
         }
 
