@@ -10,7 +10,7 @@ edition = "2024"
 # ratatui
 crossterm = { version = "0.29.0", features = ["event-stream"] }
 futures = "0.3.31"
-ratatui = "0.30.0"
+ratatui = "0.30.1"
 tokio = { version = "1.52.1", features = ["full"] }
 color-eyre = "0.6.3"
 strum = { version = "0.28.0", features = ["derive"] }
