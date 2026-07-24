@@ -44,7 +44,7 @@ This project is still in very early development so expect things to change. The 
 
 # Git Soundtrack
 <!-- GENRE_BADGES_START -->
-![outlaw country](https://img.shields.io/badge/outlaw%20country-20%25-blue) ![country rock](https://img.shields.io/badge/country%20rock-20%25-blue) ![vaporwave](https://img.shields.io/badge/vaporwave-7%25-blue) ![blues rock](https://img.shields.io/badge/blues%20rock-7%25-blue) ![plunderphonics](https://img.shields.io/badge/plunderphonics-7%25-blue) ![yacht rock](https://img.shields.io/badge/yacht%20rock-7%25-blue) ![soul blues](https://img.shields.io/badge/soul%20blues-7%25-blue) ![country blues](https://img.shields.io/badge/country%20blues-27%25-blue)
+![country rock](https://img.shields.io/badge/country%20rock-19%25-blue) ![bebop](https://img.shields.io/badge/bebop-6%25-blue) ![country blues](https://img.shields.io/badge/country%20blues-25%25-blue) ![blues rock](https://img.shields.io/badge/blues%20rock-6%25-blue) ![yacht rock](https://img.shields.io/badge/yacht%20rock-6%25-blue) ![soul blues](https://img.shields.io/badge/soul%20blues-6%25-blue) ![vaporwave](https://img.shields.io/badge/vaporwave-6%25-blue) ![outlaw country](https://img.shields.io/badge/outlaw%20country-19%25-blue) ![plunderphonics](https://img.shields.io/badge/plunderphonics-6%25-blue)
 <!-- GENRE_BADGES_END -->
 
 ## License
