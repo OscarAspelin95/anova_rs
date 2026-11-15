@@ -5,6 +5,7 @@ A TUI for monitoring and controlling one or multiple ANOVA precision cookers. In
 [![Built With Ratatui](https://img.shields.io/badge/Built_With_Ratatui-000?logo=ratatui&logoColor=fff)](https://ratatui.rs/)
 
 ## Installation
+
 The easiest way to get started is to download a binary from the [GitHub release page](https://github.com/OscarAspelin95/anova_rs/releases). Alternatively, clone the respository and run:
 
 ```bash
@@ -12,7 +13,9 @@ cargo build --release
 ```
 
 ## Usage
+
 `anova_rs` requires a personal Anova token obtained from the [Anova Oven](https://play.google.com/store/apps/details?id=com.anovaculinary.anovaoven) app. The token can be provided through one of the following:
+
 - A .env file, containing `ANOVA_TOKEN="anova-ey........"`.
 - An environment variable `export ANOVA_TOKEN="anova-ey........"`
 - The CLI via the `--anova-token` arg.
@@ -27,26 +30,22 @@ Options:
 ```
 
 ## Supported Devices
+
 `anova_rs` uses the Anova APC API and currently only supports precision cooker devices. The honest reason is that I don't own a precision oven hence making development, testing and validation difficult.
 
 ## Current State
+
 This project is still in very early development so expect things to change. The priority list is as follows:
-- [x] Improve the temperature C <-> F display.
-- [ ] Bugfixes. There is a few I know of and more will probably appear.
-- [ ] Add more tests. There are currently very few tests.
-- [ ] UI tweaks. Change some colors, make the control more ergonomic.
-- [ ] Improve APC_PAYLOAD struct to handle temperature conversion more ergonomically.
-- [x] Refactor API
-- [ ] Move API to separate crate?
+
+- [ ] refactor anova engine
+- [ ] improve general stability
+- [ ] add some new cool features
 
 ## Screenshots
+
 ![img](assets/screenshot.png)
 
-# Git Soundtrack
-<!-- GENRE_BADGES_START -->
-![country rock](https://img.shields.io/badge/country%20rock-19%25-blue) ![bebop](https://img.shields.io/badge/bebop-6%25-blue) ![country blues](https://img.shields.io/badge/country%20blues-25%25-blue) ![blues rock](https://img.shields.io/badge/blues%20rock-6%25-blue) ![yacht rock](https://img.shields.io/badge/yacht%20rock-6%25-blue) ![soul blues](https://img.shields.io/badge/soul%20blues-6%25-blue) ![vaporwave](https://img.shields.io/badge/vaporwave-6%25-blue) ![outlaw country](https://img.shields.io/badge/outlaw%20country-19%25-blue) ![plunderphonics](https://img.shields.io/badge/plunderphonics-6%25-blue)
-<!-- GENRE_BADGES_END -->
-
 ## License
+
 Copyright (c) Oscar Aspelin <oscar.aspelin@gmail.com>
 This project is licensed under the MIT license <http://opensource.org/licenses/MIT>.
