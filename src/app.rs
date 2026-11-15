@@ -1,5 +1,5 @@
 use crate::{
-    anova_engine,
+    anova_engine::{self, types::AnovaToken},
     api::{ApcSetPayload, ApcStartPayload, ApcStopPayload, ApiRequest, TemperatureUnit},
     event::{AppEvent, Event, EventHandler},
     types::{DeviceControl, Devices, FixedValueSet, PageTab},
@@ -49,14 +49,11 @@ impl App {
     pub async fn run(
         mut self,
         mut terminal: DefaultTerminal,
-        anova_token: Option<String>,
+        anova_token: AnovaToken,
     ) -> color_eyre::Result<()> {
-        // We can probably move this somewhere else.
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel::<ApiRequest>();
-        self.api_sender = Some(tx);
-
-        // We can probably move this somewhere else
         anova_engine::engine::start(self.events.sender.clone(), rx, anova_token).await?;
+        self.api_sender = Some(tx);
 
         while self.running {
             terminal.draw(|frame| frame.render_widget(&self, frame.area()))?;

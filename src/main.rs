@@ -1,3 +1,4 @@
+use crate::anova_engine::types::AnovaToken;
 use crate::{app::App, args::Args};
 use clap::Parser;
 use std::fs::File;
@@ -38,10 +39,12 @@ async fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
 
     let args = Args::parse();
+    let anova_token = AnovaToken::from(args.anova_token)?;
+
     logging_setup(&args.log_file);
 
     let terminal = ratatui::init();
-    let result = App::new().run(terminal, args.anova_token).await;
+    let result = App::new().run(terminal, anova_token).await;
     ratatui::restore();
 
     result

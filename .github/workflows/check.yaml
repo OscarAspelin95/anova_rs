@@ -1,7 +1,9 @@
 name: Dev Check
 
 on:
-  pull_request:
+  push:
+    branches-ignore:
+      - main
 
 env:
   CARGO_TERM_COLOR: always

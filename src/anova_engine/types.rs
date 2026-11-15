@@ -19,20 +19,30 @@ fn validate_token(token: &str) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/// Main struct for establishing a websocket connection.
 #[derive(Debug, Validate)]
-pub struct Anova {
+pub struct AnovaToken {
     #[validate(custom(function = "validate_token"))]
     token: String,
 }
 
-impl Anova {
+impl AnovaToken {
     /// new instance from a provided token.
-    pub fn new(token: String) -> Self {
-        Self { token }
+    pub fn from(cli_token: Option<String>) -> Result<Self, AnovaError> {
+        let _ = dotenv::dotenv();
+
+        if let Ok(token) = Self::from_env() {
+            return Ok(token);
+        }
+
+        if let Some(token) = cli_token {
+            return Ok(Self { token });
+        }
+
+        Err(AnovaError::EnvError(
+            "ANOVA_TOKEN not provided through cli or environment".to_string(),
+        ))
     }
 
-    /// try reading token automatically from .env file.
     pub fn from_env() -> Result<Self, AnovaError> {
         let token = std::env::var("ANOVA_TOKEN").or(Err(AnovaError::EnvError(
             "env var `ANOVA_TOKEN` not found in .env file.".to_string(),
@@ -44,7 +54,6 @@ impl Anova {
         Ok(anova)
     }
 
-    /// We can prettify this later on.
     pub fn url(&self) -> Result<Url, AnovaError> {
         let url = Url::parse(&format!(
             "wss://devices.anovaculinary.io?token={}&supportedAccessories=APC",
@@ -59,5 +68,37 @@ impl Anova {
         let (writer, reader) = stream.split();
 
         Ok((writer, reader))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_no_token_available() {
+        unsafe { std::env::remove_var("ANOVA_TOKEN") };
+        let anova_token = AnovaToken::from(None);
+        assert!(anova_token.is_err());
+    }
+
+    #[test]
+    fn test_token_provided() {
+        let anova_token = AnovaToken::from(Some("my_anova_token".into()));
+        assert!(anova_token.is_ok());
+
+        let inner = anova_token.unwrap().token;
+        assert_eq!(inner, "my_anova_token");
+    }
+
+    #[test]
+    fn test_token_provided_through_env() {
+        unsafe { std::env::set_var("ANOVA_TOKEN", "my_anova_token") };
+
+        let anova_token = AnovaToken::from(None);
+        assert!(anova_token.is_ok());
+
+        let inner = anova_token.unwrap().token;
+        assert_eq!(inner, "my_anova_token");
     }
 }
