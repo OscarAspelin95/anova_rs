@@ -6,7 +6,7 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::instrument;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
 use crate::api::apc::events::apc_state::ApcStatePayload;
 use crate::api::apc::events::apc_wifi_list::AnovaDevice;
@@ -19,7 +19,7 @@ use crate::event::{AppEvent, Event};
 
 use super::errors::AnovaError;
 use super::schema::device::AnovaCommand;
-use super::types::Anova;
+use super::types::AnovaToken;
 
 /// Main Anova driver. Triggers a background task for continuously:
 /// * fetching data from the API.
@@ -33,30 +33,13 @@ use super::types::Anova;
 pub async fn start(
     sender: UnboundedSender<Event>,
     mut receiver: UnboundedReceiver<ApiRequest>,
-    anova_token: Option<String>,
+    anova_token: AnovaToken,
 ) -> Result<JoinHandle<()>, AnovaError> {
-    //
     info!("starting anova engine background task...");
 
     let handle = tokio::spawn(async move {
-        info!("loading environment...");
-        match dotenv::dotenv() {
-            Ok(p) => debug!("found .env file {}", p.display()),
-            Err(_) => error!("no .env file found"),
-        }
-
-        info!("creating anova instance...");
-        let anova = match (Anova::from_env(), anova_token) {
-            (Ok(anova), _) => anova,
-            (Err(_), Some(anova_token)) => {
-                warn!("failed to read anova token from environment");
-                Anova::new(anova_token)
-            }
-            _ => panic!("no ANOVA_TOKEN provided or found in ENV."),
-        };
-
         info!("establishing websocket connection...");
-        let (mut writer, mut reader) = anova
+        let (mut writer, mut reader) = anova_token
             .get_stream()
             .await
             .expect("failed to create websocket stream.");
@@ -153,7 +136,7 @@ pub async fn start(
                             Err(e) => error!("{e}")
                         }
                     }
-                    // available devices
+                    // available devices (currently unused).
                     c @ AnovaCommandType::EventApcWifiVersion => {
                         let anova_devices_version =
                             match serde_json::from_value::<Vec<Cooker>>(anova_command.payload) {
@@ -162,10 +145,8 @@ pub async fn start(
                             };
 
                         debug!("{} - {:?}", c, anova_devices_version);
-                        // we don't need this info (yet)
-
                     }
-                    // information about user.
+                    // information about user (current unused).
                     c @ AnovaCommandType::EventUserState => {
                         let user_state =
                             match serde_json::from_value::<UserStatePayload>(anova_command.payload) {
@@ -174,7 +155,6 @@ pub async fn start(
                             };
 
                         debug!("{} - {:?}", c, user_state);
-                        // we don't need this info (yet)
                     }
 
                     // detailed information about device

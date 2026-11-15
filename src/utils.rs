@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
+/// Essentially a `Vec` with cimpile-time constant capacity.
+/// Pushing elements above capacity pops the last element
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RestrictedVecDeque<T: Sized, const S: usize> {
     pub v: VecDeque<T>,
